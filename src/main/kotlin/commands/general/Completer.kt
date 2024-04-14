@@ -15,7 +15,7 @@ object Completer : TabCompleter {
             when (arg.tabCompletions != null) {
                 true -> arg.tabCompletions!!(argInfo)
                 false -> ArrayList<String>().also {
-                    val inferiorArguments = when (arg.modifier) {
+                    val inferiorArguments = when (arg.isModifier) {
                         true -> arguments.also { it.remove(arg) }
                         false -> arg.followingArguments
                     }
@@ -24,5 +24,9 @@ object Completer : TabCompleter {
                 }
             }
         } ?: return ArrayList()
+    }
+
+    fun List<String>.returnWithStarting(str: String): List<String> {
+        return this.filter { it.startsWith(str) }
     }
 }

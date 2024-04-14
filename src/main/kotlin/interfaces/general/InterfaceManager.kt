@@ -8,7 +8,7 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 
-typealias InterfaceName = String;
+typealias InterfaceName = String
 
 /** A map which links players to an interface, and whether its state is currently protected
  * (as to not be overwritten by the InventoryOpeningListener, which would else set it as empty. This needs to be performed while changing between interfaces) */
@@ -77,7 +77,7 @@ data class ClickDTO(
 
 /** A class meant to be overwritten to implement the specific needs four your interface.
  * Basically some sort of value that is being saved in between clicks, to save the current state of the interface. */
-open class ContextDTO()
+open class ContextDTO
 
 /** An Instance of Interface is a model of a UI component.
  * It's main ingredient is [clickableItems], which get resolved dynamically.
@@ -89,3 +89,5 @@ open class Interface(val interfaceName: String, val clickableItems: List<Clickab
         return Bukkit.createInventory(null, 9, interfaceName)
     }
 }
+
+

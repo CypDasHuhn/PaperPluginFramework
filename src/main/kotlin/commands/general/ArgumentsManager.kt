@@ -1,5 +1,6 @@
 package commands.general
 
+import commands.general.Completer.returnWithStarting
 import io.github.classgraph.ClassGraph
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
@@ -12,7 +13,7 @@ fun returnString(): ArgumentHandler = { (_, _, str, _, _) -> str }
  * Its content can very dynamically, depending on the argument Information.
  * The Argument Class is intended for nesting. When you want to chain arguments, you need to fill the following arguments. */
 open class Argument(
-    /** Controls whether the current string will be identified as this argument. */
+    /** Controls whether the current string will be identified as this argument. The default is that it's always set to true.*/
     open var isArgument: ArgumentPredicate = defaultTrue,
     /** Is there too set the Tab Completions for this argument. (Not the ones which follow, this field represents this argument!)*/
     open var tabCompletions: CompletionLambda? = null,
@@ -23,16 +24,18 @@ open class Argument(
      * to set a value under that key, which can later be used by [invoke].
      * The default is [returnString] if you don't care about that and want to transform it later. */
     open var argumentHandler: ArgumentHandler = returnString(),
-    /** Checks whether the current string is also actually valid. (Logic to determine whether it should be followed/invoked or not)*/
-    open var isValid: ArgumentPredicate? = null,
-    /** If the [isValid] check fails, this method will be invoked (you can send a message or do other logic here)*/
-    open var errorInvalid: ErrorLambda? = null,
+    /** Checks whether the current string is also actually valid. (Logic to determine whether it should be followed/invoked or not)
+     * When you have multiple returns, add a Key to later access it in [errorInvalid].*/
+    open var isValid: ArgumentPredicateString? = null,
+    /** If the [isValid] check fails, this method will be invoked (you can send a message or do other logic here)
+     * When you had multiple returns inside the [isValid], you can access the key to customize an action.*/
+    open var errorInvalid: ErrorLambdaString? = null,
     /** Determines whether this argument is a modified. Modifier Arguments don't get followed,
      * but rather can be squeezed in between arguments. For example, you can have "/setLanguage EN" or "/setLanguage -global EN".
      * "-global" is a modifier argument here, and EN is a normal argument.
      * Both of them are inside [followingArguments] of "/setLanguage", and modifiers can be only chained before the actual argument.
      * When the modifier wasn't used, it is still saved under the key inside the values, with the value being false (meaning it wasn't accessed)*/
-    open var modifier: Boolean = false,
+    open var isModifier: Boolean = false,
     /** This function will be invoked when it's a children of following Arguments, but the user didn't invoke any.
      * The program finds the first child registered which has this field filled, and invokes it.
      * (Important, this field only represents itself, not its children!)*/
@@ -44,11 +47,15 @@ open class Argument(
     open var key: String,
 ) {
     fun isValidTest(argInfo: ArgumentInfo): Boolean {
-        if (isValid != null && !isValid!!(argInfo)) {
-            errorInvalid!!(argInfo)
-            return false
+        if (isValid != null) {
+            val (isValid, errorKey) = isValid!!(argInfo)
+
+            if (!isValid) {
+                errorInvalid!!(argInfo, errorKey ?: "")
+                return false
+            }
         }
-        return true;
+        return true
     }
 }
 
@@ -62,9 +69,9 @@ class RootArgument(
      * The default is [returnString] if you don't care about that and want to transform it later. */
     override var argumentHandler: ArgumentHandler = returnString(),
     /** Checks whether the current string is also actually valid. (Logic to determine whether it should be followed/invoked or not)*/
-    override var isValid: ArgumentPredicate? = null,
+    override var isValid: ArgumentPredicateString? = null,
     /** If the [isValid] check fails, this method will be invoked (you can send a message or do other logic here)*/
-    override var errorInvalid: ErrorLambda? = null,
+    override var errorInvalid: ErrorLambdaString? = null,
     /** This is the field that is used to chain commands.*/
     override var followingArguments: List<Argument>? = null,
     /** The labels are strings that the user can use to start a command. ("/<label>"*/
@@ -80,15 +87,33 @@ class RootArgument(
     null,
     followingArguments,
     "label"
-) {
+)
 
+/** A sort of constructor which takes down the boilerplate of creating a simple Modifier Argument. */
+fun simpleModifierArgument(
+    commandName: String,
+    isValid: ArgumentPredicateString,
+    errorInvalid: ErrorLambdaString,
+    key: String,
+): Argument {
+    return Argument(
+        isArgument = { (_, _, arg, _, _) -> arg == commandName },
+        isModifier = true,
+        tabCompletions = { (_, _, arg, _, _) -> listOf(commandName).returnWithStarting(arg) },
+        argumentHandler = { (_, _, arg, _, _) -> arg == commandName },
+        isValid = isValid,
+        errorInvalid = errorInvalid,
+        key = key,
+    )
 }
 
 typealias InvokeLambda = (CommandSender, Array<String>, HashMap<String, Any>) -> Unit
 
 typealias ArgumentPredicate = (ArgumentInfo) -> Boolean
+typealias ArgumentPredicateString = (ArgumentInfo) -> Pair<Boolean, String?>
 typealias CompletionLambda = (ArgumentInfo) -> List<String>
 typealias ErrorLambda = (ArgumentInfo) -> Unit
+typealias ErrorLambdaString = (ArgumentInfo, String) -> Unit
 typealias ArgumentHandler = (ArgumentInfo) -> Any
 
 /** The Argument Info Class is a model as to what the argument currently can interact with. */
@@ -149,10 +174,10 @@ fun <T> goThroughArguments(
 
         values[currentArgument.key] = currentArgument.argumentHandler(argInfo)
 
-        arguments.stream().filter { a -> a.modifier }.forEach { a -> values.putIfAbsent(a.key, false) }
+        arguments.stream().filter { a -> a.isModifier }.forEach { a -> values.putIfAbsent(a.key, false) }
 
         if (i + 1 != argList.size) {
-            if (currentArgument.modifier) {
+            if (currentArgument.isModifier) {
                 arguments.remove(currentArgument)
             } else {
                 arguments = currentArgument.followingArguments as MutableList<Argument>
@@ -162,7 +187,7 @@ fun <T> goThroughArguments(
 
         return function(currentArgument, argInfo, arguments)
     }
-    return null;
+    return null
 }
 
 /**  ChatGPT generated Code.

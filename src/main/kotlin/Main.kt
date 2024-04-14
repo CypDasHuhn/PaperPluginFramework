@@ -1,5 +1,7 @@
+import commands.general.Command
+import commands.general.Completer
+import commands.general.getLabels
 import database.initDatabase
-import database.insertTestData
 import io.github.classgraph.ClassGraph
 import org.bukkit.Bukkit
 import org.bukkit.event.Listener
@@ -13,8 +15,14 @@ class Main : JavaPlugin() {
             pluginManager.registerEvents(listener, this)
         }
 
+        getLabels().forEach { label ->
+            getCommand(label)?.let {
+                it.setExecutor(Command)
+                it.tabCompleter = Completer
+            }
+        }
+
         initDatabase(this)
-        insertTestData()
     }
 
     private fun getListeners(): List<Listener> {
@@ -24,6 +32,4 @@ class Main : JavaPlugin() {
             return it.getSubclasses(Listener::class.java).loadClasses().toList() as List<Listener>
         }
     }
-
-
 }
