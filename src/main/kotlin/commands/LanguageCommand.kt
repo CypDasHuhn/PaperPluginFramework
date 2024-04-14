@@ -24,9 +24,6 @@ const val LANGUAGE_MISSING_KEY = "lang_missing"
 
 @CustomCommand
 var languageArgument = RootArgument(
-    invoke = null,
-    isValid = null,
-    errorInvalid = null,
     labels = listOf("!language", "!l"),
     followingArguments = listOf(
         simpleModifierArgument(
@@ -64,7 +61,7 @@ var languageArgument = RootArgument(
                 if (sender !is Player) Pair(false, null)
 
                 val languageExists = Language.entries.toTypedArray().contentToString().contains(arg)
-                if (languageExists) Pair(false, LANGUAGE_MISSING_KEY)
+                if (!languageExists) Pair(false, LANGUAGE_MISSING_KEY)
 
                 Pair(true, null)
             },
