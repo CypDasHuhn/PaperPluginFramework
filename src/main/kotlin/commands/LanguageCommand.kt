@@ -6,7 +6,7 @@ import commands.general.CustomCommand
 import commands.general.RootArgument
 import commands.general.simpleModifierArgument
 import database.Language
-import database.playerIsAdmin
+import database.isAdmin
 import database.updatePlayerLanguage
 import org.bukkit.entity.Player
 
@@ -15,23 +15,16 @@ const val GLOBAL_KEY = "global"
 const val NOT_ADMIN_KEY = "not_admin"
 const val LANGUAGE_MISSING_KEY = "lang_missing"
 
-/*
-/!language <language>
-/!language -global <language>
-/!l <language>
-/!l -global <language>
- */
-
 @CustomCommand
 var languageArgument = RootArgument(
-    labels = listOf("!language", "!l"),
+    labels = listOf("language", "l"),
     followingArguments = listOf(
         simpleModifierArgument(
             commandName = "-global",
             isValid = { (sender, _, _, _, _) ->
                 if (sender !is Player) Pair(false, null)
 
-                val isAdmin = playerIsAdmin((sender as Player).uniqueId.toString())
+                val isAdmin = (sender as Player).isAdmin()
                 Pair(isAdmin, NOT_ADMIN_KEY)
             },
             errorInvalid = { (sender, _, _, _, _), errorKey ->

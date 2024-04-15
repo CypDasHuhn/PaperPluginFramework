@@ -1,9 +1,13 @@
 package database
 
 import database.Players.isAdmin
+import database.Players.language
+import database.Players.username
+import database.Players.uuid
+import org.bukkit.Bukkit
+import org.bukkit.Bukkit.getPlayer
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -17,28 +21,43 @@ enum class Language {
     PL
 }
 
-fun insertPlayer(player: Player) {
-    transaction {
-        Players.insert {
-            it[uuid] = player.uniqueId.toString()
-            it[username] = player.name
-        }
-    }
-}
-
 fun updatePlayerLanguage(player: database.Player) {
     transaction {
-        Players.update({ Players.uuid eq player.uuid }) {
+        Players.update({ uuid eq player.uuid }) {
             it[language] = player.language
         }
     }
 }
 
-fun playerIsAdmin(uuid: String): Boolean {
+fun Player.isAdmin(): Boolean {
+    return getPlayerByUUID(this.uniqueId.toString())?.isAdmin ?: false
+}
+
+fun Player.insertIfNotExists() {
+    val player = this
+    transaction {
+        if (getPlayer(player.uniqueId.toString()) == null) {
+            Players.insert {
+                Bukkit.broadcastMessage("TEST 2")
+
+                it[uuid] = player.uniqueId.toString()
+                it[username] = player.name
+            }
+        }
+
+    }
+}
+
+fun getPlayerByUUID(targetUUID: String): database.Player? {
     return transaction {
-        Players.selectAll().where(Players.uuid eq uuid).firstOrNull()?.let {
-            it[isAdmin]
-        } ?: false
+        Players.selectAll().where { uuid eq targetUUID }.firstOrNull()?.let {
+            Player(
+                uuid = it[uuid],
+                username = it[username],
+                language = it[language],
+                isAdmin = it[isAdmin]
+            )
+        }
     }
 }
 

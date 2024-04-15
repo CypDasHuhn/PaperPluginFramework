@@ -1,3 +1,6 @@
 name: KotlinPaperFrame
 main: Main
 version: 0.1
+commands:
+  language:
+    alias: l

@@ -10,6 +10,10 @@ import org.bukkit.plugin.java.JavaPlugin
 class Main : JavaPlugin() {
 
     override fun onEnable() {
+        if (!dataFolder.exists()) {
+            dataFolder.mkdirs()
+        }
+
         val pluginManager = Bukkit.getPluginManager()
         for (listener in getListeners()) {
             pluginManager.registerEvents(listener, this)
