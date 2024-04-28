@@ -160,7 +160,9 @@ fun <T> goThroughArguments(
     _argList.add(0, label)
     val argList = _argList.toTypedArray()
 
-    var arguments: MutableList<Argument> = getCommands().toMutableList()
+    var arguments: MutableList<Argument> = getCommands().filter {
+        it.labels.contains(label)
+    }.toMutableList()
 
     val values: HashMap<String, Any> = HashMap()
     for (i in argList.indices) {
@@ -179,8 +181,10 @@ fun <T> goThroughArguments(
         if (i + 1 != argList.size) {
             if (currentArgument.isModifier) {
                 arguments.remove(currentArgument)
-            } else {
+            } else if (currentArgument.followingArguments != null) {
                 arguments = currentArgument.followingArguments as MutableList<Argument>
+            } else {
+                return function(currentArgument, argInfo, arguments)
             }
             continue
         }

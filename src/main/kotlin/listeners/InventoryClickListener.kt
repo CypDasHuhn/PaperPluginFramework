@@ -43,7 +43,7 @@ object InventoryClickListener : Listener {
             .findFirst()
             .run {
                 if (isPresent) {
-                    get().action(clickDTO.slot, context)
+                    get().action(clickDTO.slot, context, event)
                     return //listener is done
                 }
             }

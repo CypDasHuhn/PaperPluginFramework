@@ -37,22 +37,22 @@ fun openTargetInterface(player: Player, interfaceName: String, context: ContextD
                 } else return
             }
 
+
     playerInterfaceMap[player] = interfaceName
 
-    val inventory =
-        targetInterface.getInventory(player, context).fillInventory(targetInterface.clickableItems, context)
+    val inventory = targetInterface.getInventory(player, context).fillInventory(targetInterface.clickableItems, context)
+    player.openInventory(inventory)
 }
 
 /** This function fills the [Inventory] with [ItemStack]'s using the registered [clickableItems]'s
  * and the current Interface State ([context]). */
-private fun Inventory.fillInventory(clickableItems: List<ClickableItem>, context: ContextDTO) {
+private fun Inventory.fillInventory(clickableItems: List<ClickableItem>, context: ContextDTO): Inventory {
     for (slot in 0..this.size) {
-        clickableItems.stream().filter { currentItem -> currentItem.condition(slot, context) }.findFirst().run {
-            if (isPresent) {
-                this@fillInventory.setItem(slot, get().itemStackCreator(slot, context))
-            }
+        clickableItems.firstOrNull { currentItem -> currentItem.condition(slot, context) }?.let {
+            this@fillInventory.setItem(slot, it.itemStackCreator(slot, context))
         }
     }
+    return this
 }
 
 typealias Slot = Int
@@ -64,7 +64,7 @@ data class ClickableItem(
     /** A function that returns an [ItemStack] when the condition was found. */
     var itemStackCreator: (Slot, ContextDTO) -> ItemStack,
     /** A function that is called when the condition was found. */
-    var action: (Slot, ContextDTO) -> Unit
+    var action: (Slot, ContextDTO, InventoryClickEvent) -> Unit
 )
 
 data class ClickDTO(

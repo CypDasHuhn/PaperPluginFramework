@@ -12,8 +12,8 @@ object Completer : TabCompleter {
         args: Array<String>
     ): List<String> {
         return goThroughArguments(sender, commands, label, args) { arg, argInfo, arguments ->
-            when (arg.tabCompletions != null) {
-                true -> arg.tabCompletions!!(argInfo)
+            when (arguments.any { it.tabCompletions != null }) {
+                true -> arguments.flatMap { it.tabCompletions!!(argInfo) }
                 false -> ArrayList<String>().also {
                     val inferiorArguments = when (arg.isModifier) {
                         true -> arguments.also { it.remove(arg) }
