@@ -8,6 +8,7 @@ import org.bukkit.Bukkit
 import org.bukkit.Bukkit.getPlayer
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -73,4 +74,13 @@ object Players : IntIdTable() {
     val username = varchar("username", 50)
     val language = varchar("language", 50).default(DEFAULT_LANG.toString())
     val isAdmin = bool("isAdmin").default(false)
+}
+
+const val PLAYER_CACHE_KEY = "player"
+fun cachedPlayerData(player: Player): database.Player {
+    return Cache.getOrSet(
+        PLAYER_CACHE_KEY,
+        player,
+        { getPlayerByUUID(player.uniqueId.toString()) }
+    )!!
 }

@@ -6,6 +6,7 @@ import commands.general.CustomCommand
 import commands.general.RootArgument
 import commands.general.simpleModifierArgument
 import database.Language
+import database.cachedPlayerData
 import database.isAdmin
 import database.updatePlayerLanguage
 import org.bukkit.entity.Player
@@ -18,6 +19,11 @@ const val LANGUAGE_MISSING_KEY = "lang_missing"
 @CustomCommand
 var languageArgument = RootArgument(
     labels = listOf("language", "l"),
+    startingUnit = { sender  ->
+        if (sender !is Player) return@RootArgument false
+        cachedPlayerData(sender)
+        return@RootArgument true
+    },
     followingArguments = listOf(
         simpleModifierArgument(
             commandName = "-global",

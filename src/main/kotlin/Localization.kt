@@ -15,3 +15,9 @@ fun getLocalizedMessage(locale: String, messageKey: String): String? {
 fun t(messageKey: String, player: Player): String? {
     return getLocalizedMessage(messageKey, player.language)
 }
+
+class Locale(private val locale: String) {
+    fun t(messageKey: String) {
+        getLocalizedMessage(messageKey, locale)
+    }
+}

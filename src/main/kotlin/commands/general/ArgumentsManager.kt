@@ -75,7 +75,11 @@ class RootArgument(
     /** This is the field that is used to chain commands.*/
     override var followingArguments: List<Argument>? = null,
     /** The labels are strings that the user can use to start a command. ("/<label>"*/
-    var labels: List<String>
+    var labels: List<String>,
+    /** This is a function that will be invoked once the system processes the command. use this to create
+     * cached objects, or whatever else calculations you would do repeatedly else. Return false if you want
+     * to early return the entire command processing, like if the sender type is wrong, or there are no permissions for this command.*/
+    var startingUnit: ((sender: CommandSender) -> Boolean)? = null
 ) : Argument(
     defaultTrue,
     null,
@@ -164,6 +168,10 @@ fun <T> goThroughArguments(
     var arguments: MutableList<Argument> = getCommands().filter {
         it.labels.contains(label)
     }.toMutableList()
+
+    if (arguments.first() is RootArgument && (arguments.first() as RootArgument).startingUnit != null) {
+        (arguments.first() as RootArgument).startingUnit!!(sender)
+    }
 
     val values: HashMap<String, Any> = HashMap()
     for (i in argList.indices) {
