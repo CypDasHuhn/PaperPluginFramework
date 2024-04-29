@@ -11,7 +11,7 @@ object Completer : TabCompleter {
         label: String,
         args: Array<String>
     ): List<String> {
-        return goThroughArguments(sender, commands, label, args) { arg, argInfo, arguments ->
+        return goThroughArguments(sender, commands, label, args, true) { arg, argInfo, arguments ->
             when (arguments.any { it.tabCompletions != null }) {
                 true -> arguments.flatMap { it.tabCompletions!!(argInfo) }
                 false -> ArrayList<String>().also {

@@ -154,6 +154,7 @@ fun List<Argument>.getArgument(argInfo: ArgumentInfo): Argument? {
  * This method is the wrapper for going through the argument tree, which is used by Command and TabCompleter. */
 fun <T> goThroughArguments(
     sender: CommandSender, command: Command, label: String, args: Array<String>,
+    isTabCompleter: Boolean,
     function: (Argument, ArgumentInfo, MutableList<Argument>) -> T
 ): T? {
     val _argList = args.toMutableList()
@@ -171,12 +172,18 @@ fun <T> goThroughArguments(
 
         val currentArgument = arguments.getArgument(argInfo) ?: return null
 
-        val isValid = currentArgument.isValidTest(argInfo)
-        if (!isValid) return null
+
+        val (isValid, key) = currentArgument.isValid?.let { it(argInfo) } ?: Pair(true, null)
+        if (!isValid) {
+            if (!isTabCompleter) {
+                currentArgument.errorInvalid!!(argInfo, key ?: "")
+            }
+            return null
+        }
 
         values[currentArgument.key] = currentArgument.argumentHandler(argInfo)
 
-        arguments.stream().filter { a -> a.isModifier }.forEach { a -> values.putIfAbsent(a.key, false) }
+        arguments.filter { a -> a.isModifier }.forEach { a -> values.putIfAbsent(a.key, false) }
 
         if (i + 1 != argList.size) {
             if (currentArgument.isModifier) {

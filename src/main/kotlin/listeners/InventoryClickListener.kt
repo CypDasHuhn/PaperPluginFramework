@@ -25,27 +25,18 @@ object InventoryClickListener : Listener {
         if (event.currentItem == null) return
 
         val correspondingInterface = getInterfaces()
-            .stream()
-            .filter { currentInterface -> currentInterface.interfaceName == interfaceName }
-            .findFirst()
+            .firstOrNull { currentInterface -> currentInterface.interfaceName == interfaceName }
             .run {
-                if (isPresent) {
-                    get()
-                } else return
+                this ?: return
             }
 
         val clickDTO = ClickDTO(event, player, event.currentItem!!, event.currentItem!!.type, event.slot)
         val context = ContextDTO()
 
         correspondingInterface.clickableItems
-            .stream()
-            .filter { currentItem -> currentItem.condition(clickDTO.slot, context) }
-            .findFirst()
+            .firstOrNull{ currentItem -> currentItem.condition(clickDTO.slot, context)}
             .run {
-                if (isPresent) {
-                    get().action(clickDTO.slot, context, event)
-                    return //listener is done
-                }
+                this?.action?.let { it(clickDTO.slot, context, event) } ?: return
             }
     }
 }
