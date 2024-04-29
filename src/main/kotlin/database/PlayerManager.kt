@@ -1,5 +1,6 @@
 package database
 
+import Cache
 import database.Players.isAdmin
 import database.Players.language
 import database.Players.username
@@ -8,7 +9,6 @@ import org.bukkit.Bukkit
 import org.bukkit.Bukkit.getPlayer
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
