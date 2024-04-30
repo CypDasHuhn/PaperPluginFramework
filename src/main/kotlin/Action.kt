@@ -1,44 +1,120 @@
 import kotlinx.coroutines.*
+import kotlin.coroutines.coroutineContext
 
-object Action {
-    data class RepeatData(
-        val repeatCount: Int,
-        val offset: Int
-    )
+data class RepeatData(
+    val repeatCount: Int = 1,
+    val offset: Long = 0,
+    val infinite: Boolean = false
+)
 
-    data class TimeOutData(
-        val timeOutLength: Int,
-        val timeOutError: () -> Unit
-    )
+data class TimeOutData(
+    val timeOutLength: Long = 0,
+    val timeOutError: () -> Unit
+)
 
-    fun start(delay: Long = 0,
-              repeatData: RepeatData? = null,
-              async: Boolean = false,
-              timeOutData: TimeOutData? = null,
-              action: () -> Any?
-    ): Any? {
-        return CoroutineScope(Dispatchers.Default).launch {
-            delay(delay)
 
-            val job = launch {
-                repeatData?.let { repeatInfo ->
-                    repeat(repeatInfo.repeatCount) {
-                        if (isActive) {
-                            action()
-                        } else {
-                            return@launch
-                        }
-                    }
-                } ?: action.invoke()
+data class ProgressData<T>(
+    val offset: Long,
+    val value: MutableValue<T>,
+    val progressHandler: suspend (MutableValue<T>) -> Unit,
+)
+data class MutableValue<T>(var value: T)
+
+suspend fun <T> startWithProgress(
+    delay: Long = 0,
+    repeatData: RepeatData? = null,
+    async: Boolean = false,
+    timeOutData: TimeOutData? = null,
+    progressData: ProgressData<T>,
+    action: suspend (data: MutableValue<T>) -> Unit
+): Job {
+    return start(delay, repeatData, async, timeOutData) {
+        val job = coroutineContext.job
+        val currentState = progressData.value
+
+        val progressJob = CoroutineScope(coroutineContext).launch {
+            while (job.isActive) {
+                val progress = progressData.progressHandler(currentState)
+                println("Progress: $progress")
+                delay(progressData.offset)
             }
+        }
 
-            job.invokeOnCompletion {
-                if (it is CancellationException) {
-                    println("Action cancelled")
-                }
-            }
-
-            job.join() // Wait for the action to complete
+        try {
+            action(currentState)
+        } finally {
+            progressJob.cancel()
         }
     }
+}
+
+suspend fun main() {
+    startWithProgress(
+        delay = 50,
+        progressData = ProgressData(
+        50,
+            MutableValue("init"),
+        ) { value ->
+            println(value)
+        },
+        action = { value ->
+            value.value = "starting"
+            delay(60)
+            value.value = "compiling"
+            delay(60)
+            value.value = "calculating"
+            delay(60)
+            value.value = "examining"
+            delay(60)
+            value.value = "finishing"
+
+        }
+    )
+}
+
+
+suspend fun start(
+    delay: Long = 0,
+    repeatData: RepeatData? = null,
+    async: Boolean = false,
+    timeOutData: TimeOutData? = null,
+    action: suspend () -> Unit
+): Job {
+    val scope = if (async) CoroutineScope(Dispatchers.Default) else CoroutineScope(Dispatchers.IO)
+
+    delay(delay)
+    return scope.launch {
+        repeatData?.let { repeatInfo ->
+            if (repeatInfo.infinite) {
+                while (isActive) {
+                    performActionWithTimeout(timeOutData, action)
+                    delay(repeatInfo.offset)
+                }
+            } else {
+                repeat(repeatInfo.repeatCount) {
+                    performActionWithTimeout(timeOutData, action)
+                    delay(repeatInfo.offset)
+                }
+            }
+        } ?: performActionWithTimeout(timeOutData, action)
+    }
+}
+
+suspend fun performActionWithTimeout(
+    timeOutData: TimeOutData? = null,
+    action: suspend () -> Unit
+) {
+    val actionJob = coroutineScope {
+        async {
+            try {
+                withTimeout(timeOutData?.timeOutLength ?: Long.MAX_VALUE) {
+                    action()
+                }
+            } catch (e: TimeoutCancellationException) {
+                timeOutData?.timeOutError?.invoke()
+                null
+            }
+        }
+    }
+    actionJob.await()
 }
