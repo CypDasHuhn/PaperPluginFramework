@@ -14,5 +14,7 @@ object PlayerInteractEvent : Listener {
                 usableItem.clickEffect(usableItem, event)
             }
         }
+
+        
     }
 }

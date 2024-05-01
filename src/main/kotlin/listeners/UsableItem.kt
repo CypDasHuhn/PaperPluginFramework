@@ -22,7 +22,9 @@ enum class ClickState(
     RIGHT_NORMAL_CLICK(false, false)
 }
 
-
+infix fun PlayerInteractEvent.matches(events: List<ClickState>) {
+    this.
+}
 
 fun ItemStack.create(material: Material,
                      name: String? = null,
@@ -33,8 +35,18 @@ fun ItemStack.create(material: Material,
 }
 
 class UsableItem(
+    val bindedItem: ItemStack,
     val condition: ((UsableItem, PlayerInteractEvent) -> Boolean),
     val clickEffect: ((UsableItem, PlayerInteractEvent) -> Unit),
+    vararg val subEffects: SubEffect
+) {
+
+}
+
+class SubEffect(
+    val condition: ((PlayerInteractEvent) -> Boolean),
+    val clickEffect: ((PlayerInteractEvent) -> Unit),
+    vararg val subEffects: SubEffect
 ) {
 
 }

@@ -1,6 +1,6 @@
 import org.bukkit.Location
 import org.bukkit.Particle
-import org.bukkit.entity.Player
+import org.bukkit.entity.Entity
 import org.joml.Vector3d
 
 class Particle(
@@ -10,28 +10,49 @@ class Particle(
     val longRange: Boolean = false,
 
 ) {
-    fun spawnAt(location: Location) {
+    fun spawnAt(vararg locations: Location) {
 
     }
 
-    fun spawnFor(vararg player: Player) {
+    fun spawnFor(vararg entities: Entity) {
 
     }
 }
 
-enum class Faces(
-    val top: Boolean,
-    val west: Boolean,
-    val north: Boolean
+enum class Axis {
+    X,
+    Y,
+    Z
+}
+enum class Face(
+    val axis: Axis
 ) {
-
+    TOP(Axis.Y),
+    BOTTOM(Axis.Y),
+    WEST(Axis.X),
+    EAST(Axis.X),
+    NORTH(Axis.Z),
+    SOUTH(Axis.Z),
 }
 class ParticleBox(
-    val minLocation: Location,
-    val maxLocation: Location,
-    val particle: Particle = Particle.CLOUD,
-    val density: Double = 0.5,
-    val faces: listOf()
 ) {
+    constructor(
+        minLocation: Location,
+        maxLocation: Location,
+        particle: Particle = Particle.CLOUD,
+        density: Double = 0.5,
+        faces: List<Face> // = default by axis
 
+    ) : this() {
+
+    }
+
+    constructor(
+        particle: Particle = Particle.CLOUD,
+        density: Double = 0.5,
+        faces: List<Face> // = default by axis
+
+    ) : this() {
+
+    }
 }
