@@ -9,6 +9,8 @@ import java.util.*
 val defaultTrue: ArgumentPredicate = { _ -> true }
 fun returnString(): ArgumentHandler = { (_, _, str, _, _) -> str }
 
+lateinit var rootArguments: Array<RootArgument>
+
 /** The Argument Class is what's used to model a segment inside a command.
  * Its content can very dynamically, depending on the argument Information.
  * The Argument Class is intended for nesting. When you want to chain arguments, you need to fill the following arguments. */
@@ -45,19 +47,7 @@ open class Argument(
     /** This is the key that you can later access the values stored with the [argumentHandler] inside [invoke] by.
      * You probably want to save this under a variable, else you can easily do stumblers by key mismatches. */
     open var key: String,
-) {
-    fun isValidTest(argInfo: ArgumentInfo): Boolean {
-        if (isValid != null) {
-            val (isValid, errorKey) = isValid!!(argInfo)
-
-            if (!isValid) {
-                errorInvalid!!(argInfo, errorKey ?: "")
-                return false
-            }
-        }
-        return true
-    }
-}
+)
 
 /** An Argument class which is at the start of an argument tree. It's [key] is always "label"! */
 class RootArgument(
@@ -96,12 +86,13 @@ class RootArgument(
 /** A sort of constructor which takes down the boilerplate of creating a simple Modifier Argument. */
 fun simpleModifierArgument(
     commandName: String,
-    isValid: ArgumentPredicateString,
-    errorInvalid: ErrorLambdaString,
+    isArgument: ArgumentPredicate = { (_, _, arg, _, _) -> arg == commandName },
+    isValid: ArgumentPredicateString? = null,
+    errorInvalid: ErrorLambdaString? = null,
     key: String,
 ): Argument {
     return Argument(
-        isArgument = { (_, _, arg, _, _) -> arg == commandName },
+        isArgument = isArgument,
         isModifier = true,
         tabCompletions = { (_, _, arg, _, _) -> listOf(commandName).returnWithStarting(arg) },
         argumentHandler = { (_, _, arg, _, _) -> arg == commandName },
@@ -165,7 +156,7 @@ fun <T> goThroughArguments(
     _argList.add(0, label)
     val argList = _argList.toTypedArray()
 
-    var arguments: MutableList<Argument> = getCommands().filter {
+    var arguments: MutableList<Argument> = rootArguments.filter {
         it.labels.contains(label)
     }.toMutableList()
 

@@ -7,6 +7,7 @@ import org.bukkit.inventory.ItemStack
 
 typealias IsShift = Boolean
 typealias IsLeft = Boolean
+
 enum class ClickState(
     val isShift: IsShift?,
     val isLeft: IsLeft?
@@ -23,14 +24,15 @@ enum class ClickState(
 }
 
 infix fun PlayerInteractEvent.matches(events: List<ClickState>) {
-    this.
+    
 }
 
-fun ItemStack.create(material: Material,
-                     name: String? = null,
-                     description: List<String> ? = null,
-                     amount: Int = 0,
-                     nbt: Any? = null,
+fun ItemStack.create(
+    material: Material,
+    name: String? = null,
+    description: List<String>? = null,
+    amount: Int = 0,
+    nbt: Any? = null,
 ) {
 }
 
@@ -39,14 +41,10 @@ class UsableItem(
     val condition: ((UsableItem, PlayerInteractEvent) -> Boolean),
     val clickEffect: ((UsableItem, PlayerInteractEvent) -> Unit),
     vararg val subEffects: SubEffect
-) {
-
-}
+)
 
 class SubEffect(
     val condition: ((PlayerInteractEvent) -> Boolean),
     val clickEffect: ((PlayerInteractEvent) -> Unit),
     vararg val subEffects: SubEffect
-) {
-
-}
+)

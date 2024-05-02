@@ -5,30 +5,33 @@ import commands.general.Completer.returnWithStarting
 import commands.general.CustomCommand
 import commands.general.RootArgument
 import commands.general.simpleModifierArgument
-import database.Language
-import database.isAdmin
-import database.updatePlayerLanguage
+import database.*
+import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
 
 const val LANGUAGE_KEY = "language"
 const val GLOBAL_KEY = "global"
+const val GLOBAL_COMMAND = "-global"
 const val NOT_ADMIN_KEY = "not_admin"
 const val LANGUAGE_MISSING_KEY = "lang_missing"
 
+@OptIn(ExperimentalStdlibApi::class)
 @CustomCommand
-var languageArgument = RootArgument(
+var languageCommand = RootArgument(
     labels = listOf("language", "l"),
     startingUnit = { sender ->
-        return@RootArgument sender is Player
-        //cachedPlayerData(sender)
+        if (sender is Player) cachedPlayerData(sender)
+
+        true
     },
     followingArguments = listOf(
         simpleModifierArgument(
-            commandName = "-global",
+            commandName = GLOBAL_COMMAND,
+            isArgument = { (sender, _, arg, _, _) ->
+                arg == GLOBAL_COMMAND && sender.isAdmin()
+            },
             isValid = { (sender, _, _, _, _) ->
-                if (sender !is Player) Pair(false, null)
-
-                val isAdmin = (sender as Player).isAdmin()
+                val isAdmin = sender.isAdmin()
                 Pair(isAdmin, NOT_ADMIN_KEY)
             },
             errorInvalid = { (sender, _, _, _, _), errorKey ->
@@ -40,24 +43,27 @@ var languageArgument = RootArgument(
         ),
         Argument(
             tabCompletions = { (_, _, arg, _, _) ->
-                Language.entries.map { it.name }.returnWithStarting(arg)
+                Language.values().map { it.name }.returnWithStarting(arg)
             },
             invoke = { sender, _, values ->
                 val global = values[GLOBAL_KEY] as Boolean
 
                 if (global) {
-                    // TODO: Implement storing a global State!
+                    globalLanguage = Language.valueOf(values[LANGUAGE_KEY] as String)
                 } else {
                     val player: Player = sender as Player
                     val language = values[LANGUAGE_KEY] as String
 
-                    updatePlayerLanguage(database.Player(player.uniqueId.toString(), player.name, language))
+                    updatePlayerLanguage(Player(player.uniqueId.toString(), player.name, language))
                 }
             },
-            isValid = { (sender, _, arg, _, _) ->
-                if (sender !is Player) Pair(false, null)
+            isValid = { (sender, _, arg, _, values) ->
+                val global = values[GLOBAL_KEY] as Boolean? ?: false
+                val consoleChangingGlobal = sender is ConsoleCommandSender && global
 
-                val languageExists = Language.entries.toTypedArray().contentToString().contains(arg)
+                if (sender !is Player || consoleChangingGlobal) Pair(false, null)
+
+                val languageExists = Language.values().contentToString().contains(arg)
                 if (!languageExists) Pair(false, LANGUAGE_MISSING_KEY)
 
                 Pair(true, null)

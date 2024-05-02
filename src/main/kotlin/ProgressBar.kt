@@ -1,9 +1,4 @@
-import org.bukkit.Bukkit
-import org.bukkit.boss.BarColor
-import org.bukkit.boss.BarStyle
-import org.bukkit.boss.BossBar
-import org.bukkit.entity.Player
-
+/*
 sealed class ProgressBar(
     open var progress: Double
 ) {
@@ -69,9 +64,9 @@ class BossProgressBar(
         bossBar?.style = newStyle
     }
 
-    private fun updateBar() {
+    /*private fun updateBar() {
         bossBar?.progress = progress
-    }
+    }*/
 }
 
 
@@ -89,4 +84,4 @@ class ExperienceProgressBar(
             field = value
             updateBar()
         }
-}
+}*/

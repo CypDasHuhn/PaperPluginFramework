@@ -1,7 +1,16 @@
 import commands.general.Command
 import commands.general.Completer
 import commands.general.getLabels
+import commands.general.rootArguments
+import commands.interfaceCommand
+import commands.languageCommand
 import database.initDatabase
+import interfaces.TestInterface
+import interfaces.general.registeredInterfaces
+import listeners.InventoryClickListener
+import listeners.InventoryCloseListener
+import listeners.PlayerInteractEvent
+import listeners.PlayerJoinEvent
 import org.bukkit.Bukkit
 import org.bukkit.event.Listener
 import org.bukkit.plugin.Plugin
@@ -12,14 +21,18 @@ import org.reflections.util.ConfigurationBuilder
 
 class Main : JavaPlugin() {
 
+
     override fun onEnable() {
+        plugin = this
         if (!dataFolder.exists()) {
             dataFolder.mkdirs()
         }
 
+        rootArguments = listOf(interfaceCommand, languageCommand).toTypedArray()
         val pluginManager = Bukkit.getPluginManager()
-        for (listener in getListeners(this)) {
-            val s = listener
+
+        val listeners = listOf(InventoryClickListener, InventoryCloseListener, PlayerInteractEvent, PlayerJoinEvent)
+        for (listener in listeners) {
             pluginManager.registerEvents(listener, this)
         }
 
@@ -29,6 +42,8 @@ class Main : JavaPlugin() {
                 it.tabCompleter = Completer
             }
         }
+
+        registeredInterfaces = listOf(TestInterface)
 
         initDatabase(this)
     }
@@ -58,5 +73,9 @@ class Main : JavaPlugin() {
             plugin.server.pluginManager.registerEvents(listener, plugin)
         }
         return listenerInstances
+    }
+
+    companion object {
+        lateinit var plugin: JavaPlugin
     }
 }

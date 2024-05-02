@@ -10,6 +10,8 @@ import org.bukkit.inventory.ItemStack
 
 typealias InterfaceName = String
 
+lateinit var registeredInterfaces: List<Interface>
+
 /** A map which links players to an interface, and whether its state is currently protected
  * (as to not be overwritten by the InventoryOpeningListener, which would else set it as empty. This needs to be performed while changing between interfaces) */
 var playerInterfaceMap = HashMap<Player, InterfaceName>()
@@ -18,11 +20,11 @@ fun setPlayerEmpty(player: Player) {
 }
 
 /** This function returns every instance of [Interface].*/
-fun getInterfaces(): List<Interface> {
+fun getInterfaces(): List<Class<*>> {
     val scanResult = ClassGraph().enableAllInfo().scan()
     scanResult.use {
         @Suppress("UNCHECKED_CAST")
-        return it.getSubclasses(Interface::class.java).loadClasses().toList() as List<Interface>
+        return it.getSubclasses(Interface::class.java).loadClasses().toList()
     }
 }
 
@@ -30,12 +32,8 @@ fun getInterfaces(): List<Interface> {
  * for the given [player] applied with the current state of the interface ([context]). */
 fun openTargetInterface(player: Player, interfaceName: String, context: ContextDTO) {
     val targetInterface =
-        getInterfaces().stream().filter { currentInterface -> currentInterface.interfaceName == interfaceName }
-            .findFirst().run {
-                if (isPresent) {
-                    get()
-                } else return
-            }
+        registeredInterfaces.filter { currentInterface -> currentInterface.interfaceName == interfaceName }
+            .firstOrNull() ?: return
 
 
     playerInterfaceMap[player] = interfaceName
