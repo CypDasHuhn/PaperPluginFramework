@@ -47,7 +47,7 @@ val yourCommand = RootArgument(
 Back to the difference between **RootArgument** and **Argument**. <br>
 We will talk about all the fields that an **Argument** class can contain, 
 but first we will note which Parameters only **RootArgument** has. <br>
-The **RotArgument** class contains the **labels** paramater, which is a List of Strings. These are the initial strings which this argument is registered for, <br>
+The **RootArgument** class contains the **labels** paramater, which is a List of Strings. These are the initial strings which this argument is registered for, <br>
 meaning this part: ``/<label> ...``. <be>
 This is the only parameter that you absolutely need to define, no matter what. <br>
 Another parameter which is unique to **RootArgument** is **startingUnit**.
