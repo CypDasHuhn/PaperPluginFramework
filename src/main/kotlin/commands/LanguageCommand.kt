@@ -51,10 +51,11 @@ var languageCommand = RootArgument(
                 if (global) {
                     globalLanguage = Language.valueOf(values[LANGUAGE_KEY] as String)
                 } else {
-                    val player: Player = sender as Player
                     val language = values[LANGUAGE_KEY] as String
+                    val player = cachedPlayerData(sender as Player)
 
-                    updatePlayerLanguage(Player(player.uniqueId.toString(), player.name, language))
+                    player.language = language
+                    player.updateDatabase()
                 }
             },
             isValid = { (sender, _, arg, _, values) ->

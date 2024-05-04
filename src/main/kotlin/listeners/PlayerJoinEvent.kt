@@ -1,6 +1,6 @@
 package listeners
 
-import database.insertIfNotExists
+import database.insertToDatabase
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -10,6 +10,6 @@ object PlayerJoinEvent : Listener {
     @EventHandler
     fun onPlayerJoin(event: PlayerJoinEvent) {
         Bukkit.broadcastMessage("TEST 1")
-        event.player.insertIfNotExists()
+        event.player.insertToDatabase()
     }
 }

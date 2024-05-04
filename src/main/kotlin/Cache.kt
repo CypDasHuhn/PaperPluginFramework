@@ -41,9 +41,14 @@ object Cache {
         sender: CommandSender? = null,
         provider: () -> T?,
         clearTime: Number? = null
-    ): T? {
-        return get(key, sender) as T? ?: provider().also {
-            set(key, sender, this, clearTime)
+    ): T {
+        val foundValue = get(key, sender)
+        return if (foundValue != null) {
+            foundValue as T
+        } else {
+            provider().also {
+                set(key, sender, this, clearTime)
+            }!!
         }
     }
 }

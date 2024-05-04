@@ -14,14 +14,13 @@ val adminCommand = RootArgument(
         Argument(
             invoke = { _, _, values ->
                 val playerName = values[PLAYER_KEY] as String
-                val player = getPlayerByName(playerName)
-                if (player == null) return@Argument
-                
+                val player = getPlayerByName(playerName) ?: return@Argument
+
                 player.isAdmin = !player.isAdmin
-                updatePlayerAdminState(player)
+                player.updateDatabase()
             },
             tabCompletions = { (_, _, _, _, _) ->
-                getAllPlayers().map { it.username }
+                getPlayers().map { it.username }
             },
             errorMissing = { (sender, _, _, _, _) ->
                 sender.sendMessage("You need to name a player!")
