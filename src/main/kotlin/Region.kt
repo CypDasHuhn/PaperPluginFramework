@@ -5,7 +5,7 @@ import org.bukkit.block.Block
 import org.bukkit.entity.Entity
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
-import kotlin.math.abs
+import org.bukkit.util.Vector
 
 data class Region(
     val edge1: Location,
@@ -32,19 +32,23 @@ data class Region(
 
     fun contains(location: Location): Boolean {
         return edge1.x <= location.x && location.x <= edge2.x &&
-            edge1.y <= location.y && location.y <= edge2.y &&
-            edge1.z <= location.z && location.z <= edge2.z
+                edge1.y <= location.y && location.y <= edge2.y &&
+                edge1.z <= location.z && location.z <= edge2.z
     }
+
     fun contains(region: Region): Boolean {
         return contains(region.edge1) && contains(region.edge2)
     }
+
     fun contains(entity: Entity): Boolean {
         return contains(entity.location)
     }
+
     fun intersects(region: Region): Boolean {
         return contains(region.edge1) || contains(region.edge2) ||
-            region.contains(edge1) || region.contains(edge2)
+                region.contains(edge1) || region.contains(edge2)
     }
+
     val blocks: List<Block>
         get() {
             val world: World = edge1.world
@@ -57,7 +61,7 @@ data class Region(
         get() {
             val world: World = edge1.world
 
-            return iterateRegion{ x, y, z ->
+            return iterateRegion { x, y, z ->
                 world.getBlockAt(x, y, z)
             }.toBlocksArray(this)
         }
@@ -66,6 +70,7 @@ data class Region(
         get() {
             return entities()
         }
+
     fun entities(vararg types: EntityType): List<Entity> {
         val world: World = edge1.world
         return iterateRegion { x, y, z ->
@@ -142,6 +147,42 @@ data class Region(
         return minX <= chunkMinX && maxX >= chunkMaxX && minZ <= chunkMinZ && maxZ >= chunkMaxZ
     }
 
+    fun enlarge(amount: Int, vararg axes: Axis): Region {
+        val faces = Face.values().filter { axes.contains(it.axis) }
+        return enlarge(amount, *faces.toTypedArray())
+    }
+
+    fun enlarge(amount: Int, vararg faces: Face): Region {
+        return changeBorders(amount, true, *faces)
+    }
+
+    fun shrink(amount: Int, vararg axes: Axis): Region {
+        val faces = Face.values().filter { axes.contains(it.axis) }
+        return shrink(amount, *faces.toTypedArray())
+    }
+
+    fun shrink(amount: Int, vararg faces: Face): Region {
+        return changeBorders(amount, false, *faces)
+    }
+
+    private fun changeBorders(amount: Int, enlarge: Boolean, vararg faces: Face): Region {
+        var minEdge = Location(world, minX.toDouble(), minY.toDouble(), minZ.toDouble())
+        var maxEdge = Location(world, maxX.toDouble(), maxY.toDouble(), maxZ.toDouble())
+
+        val allFaces = if (faces.isEmpty()) Face.values() else faces
+        allFaces.forEach { face ->
+            val coordinateChange = amount * (if (enlarge xor face.positive) 1 else -1)
+            val changingEdge = if (enlarge xor face.positive) maxEdge else minEdge
+            val modifiedEdge = when (face.axis) {
+                Axis.X -> changingEdge.add(Vector(coordinateChange, 0, 0))
+                Axis.Y -> changingEdge.add(Vector(0, coordinateChange, 0))
+                Axis.Z -> changingEdge.add(Vector(0, 0, coordinateChange))
+            }
+            if (enlarge xor face.positive) maxEdge = modifiedEdge else minEdge = modifiedEdge
+        }
+
+        return Region(minEdge, maxEdge)
+    }
 }
 
 fun List<Block>.toBlocksArray(region: Region): Array<Array<Array<Block?>>> {

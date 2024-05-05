@@ -9,7 +9,7 @@ class Particle(
     val offset: Vector3d = Vector3d(1.0, 1.0, 1.0),
     val longRange: Boolean = false,
 
-) {
+    ) {
     fun spawnAt(vararg locations: Location) {
 
     }
@@ -24,16 +24,19 @@ enum class Axis {
     Y,
     Z
 }
+
 enum class Face(
-    val axis: Axis
+    val axis: Axis,
+    val positive: Boolean
 ) {
-    TOP(Axis.Y),
-    BOTTOM(Axis.Y),
-    WEST(Axis.X),
-    EAST(Axis.X),
-    NORTH(Axis.Z),
-    SOUTH(Axis.Z),
+    TOP(Axis.Y, true),
+    BOTTOM(Axis.Y, false),
+    WEST(Axis.X, false),
+    EAST(Axis.X, true),
+    NORTH(Axis.Z, false),
+    SOUTH(Axis.Z, true),
 }
+
 class ParticleBox(
 ) {
     constructor(
@@ -43,16 +46,12 @@ class ParticleBox(
         density: Double = 0.5,
         faces: List<Face> // = default by axis
 
-    ) : this() {
-
-    }
+    ) : this()
 
     constructor(
         particle: Particle = Particle.CLOUD,
         density: Double = 0.5,
         faces: List<Face> // = default by axis
 
-    ) : this() {
-
-    }
+    ) : this()
 }
