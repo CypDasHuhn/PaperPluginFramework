@@ -6,16 +6,17 @@ import commands.general.CustomCommand
 import commands.general.RootArgument
 import commands.general.simpleModifierArgument
 import database.*
+import org.bukkit.command.CommandSender
 import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
+import t
 
 const val LANGUAGE_KEY = "language"
 const val GLOBAL_KEY = "global"
 const val GLOBAL_COMMAND = "-global"
 const val NOT_ADMIN_KEY = "not_admin"
-const val LANGUAGE_MISSING_KEY = "lang_missing"
+const val LANGUAGE_NOT_EXISTING = "lang_not_existing"
 
-@OptIn(ExperimentalStdlibApi::class)
 @CustomCommand
 var languageCommand = RootArgument(
     labels = listOf("language", "l"),
@@ -30,14 +31,8 @@ var languageCommand = RootArgument(
             isArgument = { (sender, _, arg, _, _) ->
                 arg == GLOBAL_COMMAND && sender.isAdmin()
             },
-            isValid = { (sender, _, _, _, _) ->
-                val isAdmin = sender.isAdmin()
-                Pair(isAdmin, NOT_ADMIN_KEY)
-            },
-            errorInvalid = { (sender, _, _, _, _), errorKey ->
-                if (errorKey == NOT_ADMIN_KEY) {
-                    sender.sendMessage("${sender.name} is not an admin!")
-                }
+            isValidCompleter = { (sender, _, _, _, _) ->
+                sender.isAdmin()
             },
             key = GLOBAL_KEY,
         ),
@@ -47,35 +42,46 @@ var languageCommand = RootArgument(
             },
             invoke = { sender, _, values ->
                 val global = values[GLOBAL_KEY] as Boolean
+                val langStr = values[LANGUAGE_KEY] as String
+                val lang = Language.valueOf(langStr)
+
+                fun langChangeMessage(sender: CommandSender, language: Language?, global: Boolean) {
+                    val scale = if (global) "scale_global" else "scale_your"
+                    sender.sendMessage(t("set_language", language, Pair("scale", t(scale, language))))
+                }
 
                 if (global) {
-                    globalLanguage = Language.valueOf(values[LANGUAGE_KEY] as String)
+                    globalLanguage = lang
+                    val senderLang = sender.language()
+                    langChangeMessage(sender, senderLang, true)
                 } else {
-                    val language = values[LANGUAGE_KEY] as String
                     val player = cachedPlayerData(sender as Player)
-
-                    player.language = language
+                    player.language = lang
                     player.updateDatabase()
+
+                    langChangeMessage(sender, lang, false)
                 }
             },
             isValid = { (sender, _, arg, _, values) ->
                 val global = values[GLOBAL_KEY] as Boolean? ?: false
                 val consoleChangingGlobal = sender is ConsoleCommandSender && global
 
-                if (sender !is Player || consoleChangingGlobal) Pair(false, null)
+                // validness check for command blocks (which are invalid) and console which changes NOT global (also invalid)
+                if (sender !is Player || consoleChangingGlobal) return@Argument Pair(false, null)
 
                 val languageExists = Language.values().contentToString().contains(arg)
-                if (!languageExists) Pair(false, LANGUAGE_MISSING_KEY)
+                if (!languageExists) return@Argument Pair(false, LANGUAGE_NOT_EXISTING)
 
-                Pair(true, null)
+                return@Argument Pair(true, null)
             },
             errorInvalid = { (sender, _, arg, _, _), errorKey ->
-                if (errorKey == LANGUAGE_MISSING_KEY) {
-                    sender.sendMessage("$arg is not a valid language")
+                if (errorKey == LANGUAGE_NOT_EXISTING) {
+                    sender.sendMessage(t("not_valid_language", sender.language(), Pair("lang", arg)))
                 }
             },
             errorMissing = { (sender, _, _, _, _) ->
-                sender.sendMessage("You need to specify a language!")
+                sender.sendMessage(t("specify_language", sender.language()))
+
             },
             key = LANGUAGE_KEY
         )

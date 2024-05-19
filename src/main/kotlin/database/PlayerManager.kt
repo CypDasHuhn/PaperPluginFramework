@@ -21,7 +21,7 @@ enum class Language {
 data class Player(
     val uuid: String,
     var username: String,
-    var language: String,
+    var language: Language?,
     var isAdmin: Boolean = false
 )
 
@@ -32,14 +32,38 @@ object Players : IntIdTable() {
     val isAdmin = bool("isAdmin").default(false)
 }
 
-
 fun ResultRow.toPlayer(): Player {
     return Player(
         uuid = this[Players.uuid],
         username = this[Players.username],
-        language = this[Players.language] ?: globalLanguage.toString(),
+        language = if (this[Players.language] != null) Language.valueOf(this[Players.language] as String) else null,
         isAdmin = this[Players.isAdmin]
     )
+}
+
+
+fun org.bukkit.entity.Player.insertToDatabase() {
+    val player = this
+    transaction {
+        val targetPlayer = getPlayerByUUID(player.uniqueId.toString())
+
+        if (targetPlayer == null) {
+            Players.insert {
+                it[uuid] = player.uniqueId.toString()
+                it[username] = player.name
+            }
+        }
+    }
+}
+
+fun Player.updateDatabase() {
+    transaction {
+        Players.update({ Players.uuid eq uuid }) {
+            it[username] = this@updateDatabase.username
+            it[isAdmin] = this@updateDatabase.isAdmin
+            if (this@updateDatabase.language != null) it[language] = this@updateDatabase.language.toString()
+        }
+    }
 }
 
 fun List<ResultRow>.toPlayers(): List<Player> {
@@ -67,30 +91,25 @@ fun getPlayers(): List<Player> {
     }
 }
 
+fun playerExists(userName: String): Boolean {
+    return getPlayerByName(userName) != null
+}
+
 const val PLAYER_CACHE_KEY = "player"
 fun cachedPlayerData(player: org.bukkit.entity.Player): Player {
     return Cache.getOrSet(
         PLAYER_CACHE_KEY,
         player,
-        { getPlayerByUUID(player.uniqueId.toString()) }
-    )
+        { getPlayerByUUID(player.uniqueId.toString()) },
+        5 * 1000
+    )!!
 }
 
 const val GLOBAL_LANGUAGE_KEY = "global_language"
 fun CommandSender.language(): Language {
-    return if (this is org.bukkit.entity.Player)
-        Language.valueOf(cachedPlayerData(this).language)
-    else globalLanguage
-}
-
-fun CommandSender.isAdmin(): Boolean {
-    return if (this is org.bukkit.entity.Player)
-        cachedPlayerData(this).isAdmin
-    else this is ConsoleCommandSender
-}
-
-fun playerExists(userName: String): Boolean {
-    return getPlayerByName(userName) != null
+    return if (this is org.bukkit.entity.Player) {
+        cachedPlayerData(this).language ?: globalLanguage
+    } else globalLanguage
 }
 
 var globalLanguage: Language
@@ -105,27 +124,8 @@ var globalLanguage: Language
         plugin.saveConfig()
     }
 
-fun org.bukkit.entity.Player.insertToDatabase() {
-    val player = this
-    transaction {
-        val targetPlayer = getPlayerByUUID(player.uniqueId.toString())
-
-        if (targetPlayer == null) {
-            Players.insert {
-                it[uuid] = player.uniqueId.toString()
-                it[username] = player.name
-                it[language] = DEFAULT_LANG.toString()
-            }
-        }
-    }
-}
-
-fun Player.updateDatabase() {
-    transaction {
-        Players.update({ Players.uuid eq uuid }) {
-            it[username] = this@updateDatabase.username
-            it[language] = this@updateDatabase.language
-            it[isAdmin] = this@updateDatabase.isAdmin
-        }
-    }
+fun CommandSender.isAdmin(): Boolean {
+    return if (this is org.bukkit.entity.Player)
+        cachedPlayerData(this).isAdmin
+    else this is ConsoleCommandSender
 }

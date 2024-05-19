@@ -28,7 +28,7 @@ class Main : JavaPlugin() {
             dataFolder.mkdirs()
         }
 
-        rootArguments = listOf(interfaceCommand, languageCommand).toTypedArray()
+        rootArguments = mutableListOf(interfaceCommand, languageCommand)
         val pluginManager = Bukkit.getPluginManager()
 
         val listeners = listOf(InventoryClickListener, InventoryCloseListener, PlayerInteractEvent, PlayerJoinEvent)

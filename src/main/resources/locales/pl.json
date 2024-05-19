@@ -1,3 +1,11 @@
 {
-  "welcome_message": "Witaj sie!"
+  "lang_de": "Niemiecki",
+  "lang_en": "Angielski",
+  "lang_pl": "Polski",
+  "not_admin": "Nie masz uprawnień administratora!",
+  "not_valid_language": "",
+  "scale_global": "Globalny",
+  "scale_your": "Twój",
+  "set_language": "${scale} język został zmieniony na polski!",
+  "welcome_message": "Witaj!"
 }

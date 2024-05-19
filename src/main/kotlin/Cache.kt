@@ -41,14 +41,16 @@ object Cache {
         sender: CommandSender? = null,
         provider: () -> T?,
         clearTime: Number? = null
-    ): T {
+    ): T? {
         val foundValue = get(key, sender)
         return if (foundValue != null) {
-            foundValue as T
+            foundValue as T?
         } else {
             provider().also {
-                set(key, sender, this, clearTime)
-            }!!
+                if (it != null) {
+                    set(key, sender, it, clearTime)
+                }
+            }
         }
     }
 }
