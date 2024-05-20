@@ -27,17 +27,8 @@
     </repositories>
 
     <build>
-        <resources>
-            <resource>
-                <directory>resources</directory>
-                <includes>
-                    <include>locales/**</include>
-                    <include>plugin.yml</include>
-                </includes>
-            </resource>
-        </resources>
         <sourceDirectory>src/main/kotlin</sourceDirectory>
-        <testSourceDirectory>src/test/kotlin</testSourceDirectory>
+        <testSourceDirectory>src/test/kotlins</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>

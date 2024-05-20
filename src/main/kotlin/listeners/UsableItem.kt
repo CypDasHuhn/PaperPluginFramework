@@ -1,6 +1,8 @@
 package listeners
 
+import net.kyori.adventure.text.Component
 import org.bukkit.Material
+import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.ItemStack
 
@@ -23,28 +25,82 @@ enum class ClickState(
     RIGHT_NORMAL_CLICK(false, false)
 }
 
-infix fun PlayerInteractEvent.matches(events: List<ClickState>) {
-    
+private fun eventHasClicks(clickStates: Array<out ClickState>, isLeft: Boolean, isShift: Boolean): Boolean {
+    for (clickState in clickStates) {
+        if ((clickState.isShift == null || clickState.isShift == isShift) &&
+            (clickState.isLeft == null || clickState.isLeft == isLeft)
+        ) {
+            return true
+        }
+    }
+    return false
 }
+
+fun PlayerInteractEvent.hasClicks(vararg clickStates: ClickState): Boolean {
+    return eventHasClicks(clickStates, this.action.isLeftClick, this.player.isSneaking)
+}
+
+fun InventoryClickEvent.hasClicks(vararg clickStates: ClickState): Boolean {
+    return eventHasClicks(clickStates, this.isLeftClick, this.isShiftClick)
+}
+
 
 fun ItemStack.create(
     material: Material,
-    name: String? = null,
-    description: List<String>? = null,
+    name: Component? = null,
+    description: List<Component>? = null,
     amount: Int = 0,
     nbt: Any? = null,
 ) {
+    val item = ItemStack(material, amount)
+    val itemMeta = item.itemMeta
+    if (name != null) itemMeta.displayName(name)
+    if (description != null) itemMeta.lore(description)
+    item.itemMeta = itemMeta
 }
 
-class UsableItem(
-    val bindedItem: ItemStack,
-    val condition: ((UsableItem, PlayerInteractEvent) -> Boolean),
-    val clickEffect: ((UsableItem, PlayerInteractEvent) -> Unit),
-    vararg val subEffects: SubEffect
-)
 
-class SubEffect(
-    val condition: ((PlayerInteractEvent) -> Boolean),
-    val clickEffect: ((PlayerInteractEvent) -> Unit),
-    vararg val subEffects: SubEffect
-)
+class UsableItem() {
+    lateinit var condition: (PlayerInteractEvent) -> Boolean
+    lateinit var clickEffect: (PlayerInteractEvent) -> Unit
+    var itemGenerator: (() -> ItemStack)? = null
+    lateinit var subEffects: List<ItemEffect>
+
+    constructor(
+        condition: (PlayerInteractEvent) -> Boolean,
+        clickEffect: (PlayerInteractEvent) -> Unit,
+        itemGenerator: (() -> ItemStack)? = null,
+        vararg subEffects: ItemEffect
+    ) : this() {
+        this.condition = condition
+        this.clickEffect = clickEffect
+        this.itemGenerator = itemGenerator
+        this.subEffects = subEffects.toList()
+    }
+
+    constructor(
+        itemStack: ItemStack,
+        clickEffect: (PlayerInteractEvent) -> Unit,
+        vararg subEffects: ItemEffect
+    ) : this() {
+        condition = { event -> event.item == itemStack }
+        itemGenerator = { itemStack }
+        this.clickEffect = clickEffect
+        this.subEffects = subEffects.toList()
+    }
+}
+
+class ItemEffect() {
+    lateinit var condition: (PlayerInteractEvent) -> Boolean
+    lateinit var clickEffect: (PlayerInteractEvent) -> Unit
+    lateinit var subEffects: List<ItemEffect>
+    constructor(
+        condition: (PlayerInteractEvent) -> Boolean,
+        clickEffect: (PlayerInteractEvent) -> Unit,
+        vararg subEffects: ItemEffect
+    ) : this() {
+        this.condition = condition
+        this.clickEffect = clickEffect
+        this.subEffects = subEffects.toList()
+    }
+}

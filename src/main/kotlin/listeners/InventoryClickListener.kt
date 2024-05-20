@@ -1,5 +1,9 @@
 package listeners
 
+import interfaces.TestInterfaceContext
+import interfaces.general.ClickDTO
+import interfaces.general.ContextDTO
+import interfaces.general.getInterfaces
 import interfaces.general.playerInterfaceMap
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -21,19 +25,19 @@ object InventoryClickListener : Listener {
 
         if (event.currentItem == null) return
 
-        /*val correspondingInterface = getInterfaces()
+        val correspondingInterface = getInterfaces()
             .firstOrNull { currentInterface -> currentInterface.interfaceName == interfaceName }
             .run {
                 this ?: return
             }
 
         val clickDTO = ClickDTO(event, player, event.currentItem!!, event.currentItem!!.type, event.slot)
-        val context = ContextDTO()
+        val context = TestInterfaceContext(2, "Guck!")
 
         correspondingInterface.clickableItems
             .firstOrNull{ currentItem -> currentItem.condition(clickDTO.slot, context)}
             .run {
-                this?.action?.let { it(clickDTO.slot, context, event) } ?: return
-            }*/
+                this?.action?.let { it(clickDTO, context, event) } ?: return
+            }
     }
 }

@@ -5,15 +5,17 @@ import interfaces.general.ClickableItem
 import interfaces.general.ContextDTO
 import interfaces.general.Interface
 import interfaces.general.openTargetInterface
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.entity.Player
+import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 
 object TestInterface : Interface("test", listOf(
     ClickableItem(
-        condition = { slot, context -> slot == 9 },
-        itemStackCreator = { slot, context -> ItemStack(Material.GRASS_BLOCK) },
-        action = { slot, context, event -> event.whoClicked.sendMessage((context as TestInterfaceContext).itemName) }
+        condition = { slot, _ -> slot == 9 },
+        itemStackCreator = { _, _ -> ItemStack(Material.GRASS_BLOCK) },
+        action = { _, context, event -> event.whoClicked.sendMessage((context as TestInterfaceContext).itemName) }
     ),
     ClickableItem(
         condition = { slot, context -> slot < (context as TestInterfaceContext).amount },
@@ -34,7 +36,11 @@ object TestInterface : Interface("test", listOf(
             openTargetInterface(event.whoClicked as Player, interfaceName, testContext)
         }
     )
-))
+)) {
+    override fun getInventory(player: Player?, context: ContextDTO?): Inventory {
+        return Bukkit.createInventory(null, 9*6, interfaceName)
+    }
+}
 
 class TestInterfaceContext(
     var amount: Int,

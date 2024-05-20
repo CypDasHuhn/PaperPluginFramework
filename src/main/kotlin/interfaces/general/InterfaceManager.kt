@@ -1,5 +1,6 @@
 package interfaces.general
 
+import interfaces.TestInterface
 import io.github.classgraph.ClassGraph
 import org.bukkit.Bukkit
 import org.bukkit.Material
@@ -20,20 +21,21 @@ fun setPlayerEmpty(player: Player) {
 }
 
 /** This function returns every instance of [Interface].*/
-fun getInterfaces(): List<Class<*>> {
+fun getInterfaces(): List<Interface> {
+    return listOf(TestInterface)
+    /*
     val scanResult = ClassGraph().enableAllInfo().scan()
     scanResult.use {
         @Suppress("UNCHECKED_CAST")
         return it.getSubclasses(Interface::class.java).loadClasses().toList()
-    }
+    }*/
 }
 
 /** This function opens the interface it could find depending on the [interfaceName]
  * for the given [player] applied with the current state of the interface ([context]). */
 fun openTargetInterface(player: Player, interfaceName: String, context: ContextDTO) {
     val targetInterface =
-        registeredInterfaces.filter { currentInterface -> currentInterface.interfaceName == interfaceName }
-            .firstOrNull() ?: return
+        registeredInterfaces.firstOrNull { currentInterface -> currentInterface.interfaceName == interfaceName } ?: return
 
 
     playerInterfaceMap[player] = interfaceName
@@ -45,7 +47,7 @@ fun openTargetInterface(player: Player, interfaceName: String, context: ContextD
 /** This function fills the [Inventory] with [ItemStack]'s using the registered [clickableItems]'s
  * and the current Interface State ([context]). */
 private fun Inventory.fillInventory(clickableItems: List<ClickableItem>, context: ContextDTO): Inventory {
-    for (slot in 0..this.size) {
+    for (slot in 0 until this.size) {
         clickableItems.firstOrNull { currentItem -> currentItem.condition(slot, context) }?.let {
             this@fillInventory.setItem(slot, it.itemStackCreator(slot, context))
         }
@@ -62,7 +64,7 @@ data class ClickableItem(
     /** A function that returns an [ItemStack] when the condition was found. */
     var itemStackCreator: (Slot, ContextDTO) -> ItemStack,
     /** A function that is called when the condition was found. */
-    var action: (Slot, ContextDTO, InventoryClickEvent) -> Unit
+    var action: (ClickDTO, ContextDTO, InventoryClickEvent) -> Unit
 )
 
 data class ClickDTO(
@@ -83,7 +85,7 @@ open class ContextDTO
 open class Interface(val interfaceName: String, val clickableItems: List<ClickableItem>) {
     /** The generator of this interface. Its intended use is to be overwritten, for actual customization
      * The fields [player] and [context] by default aren't actually used, but by that you can use them if you want too. */
-    fun getInventory(player: Player?, context: ContextDTO?): Inventory {
+    open fun getInventory(player: Player?, context: ContextDTO?): Inventory {
         return Bukkit.createInventory(null, 9, interfaceName)
     }
 }

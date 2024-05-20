@@ -9,7 +9,6 @@ import org.bukkit.event.player.PlayerJoinEvent
 object PlayerJoinEvent : Listener {
     @EventHandler
     fun onPlayerJoin(event: PlayerJoinEvent) {
-        Bukkit.broadcastMessage("TEST 1")
         event.player.insertToDatabase()
     }
 }

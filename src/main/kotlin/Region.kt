@@ -5,13 +5,12 @@ import org.bukkit.block.Block
 import org.bukkit.entity.Entity
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
-import org.bukkit.util.Vector
 
 data class Region(
-    val edge1: Location,
-    val edge2: Location
+    var edge1: Location,
+    var edge2: Location
 ) {
-    private val world: World by lazy { edge1.world }
+    val world: World by lazy { edge1.world }
 
     val minX: Int by lazy { edge1.blockX.coerceAtMost(edge2.blockX) }
     val minY: Int by lazy { edge1.blockY.coerceAtMost(edge2.blockY) }
@@ -29,6 +28,11 @@ data class Region(
     val sideSizeX: Int by lazy { sizeY * sizeZ }
     val sideSizeY: Int by lazy { sizeX * sizeZ }
     val sideSizeZ: Int by lazy { sizeX * sizeY }
+
+    val minXChunk: Int by lazy { minX / 16 }
+    val minZChunk: Int by lazy { minZ / 16 }
+    val maxXChunk: Int by lazy { maxX / 16 }
+    val maxZChunk: Int by lazy { maxZ / 16 }
 
     fun contains(location: Location): Boolean {
         return edge1.x <= location.x && location.x <= edge2.x &&
@@ -104,11 +108,6 @@ data class Region(
     val chunks: Set<Chunk> by lazy {
         val world = edge1.world
 
-        val minXChunk = minX / 16
-        val minZChunk = minZ / 16
-        val maxXChunk = maxX / 16
-        val maxZChunk = maxZ / 16
-
         val chunks = mutableSetOf<Chunk>()
         for (x in minXChunk..maxXChunk) {
             for (z in minZChunk..maxZChunk) {
@@ -120,11 +119,6 @@ data class Region(
 
     val chunksFull: Set<Chunk> by lazy {
         val world = edge1.world
-
-        val minXChunk = minX / 16
-        val minZChunk = minZ / 16
-        val maxXChunk = maxX / 16
-        val maxZChunk = maxZ / 16
 
         val chunks = mutableSetOf<Chunk>()
         for (x in minXChunk..maxXChunk) {
@@ -149,7 +143,7 @@ data class Region(
 
     fun enlarge(amount: Int, vararg axes: Axis): Region {
         val faces = Face.values().filter { axes.contains(it.axis) }
-        return enlarge(amount, *faces.toTypedArray())
+        return changeBorders(amount, true, *faces.toTypedArray())
     }
 
     fun enlarge(amount: Int, vararg faces: Face): Region {
@@ -158,7 +152,7 @@ data class Region(
 
     fun shrink(amount: Int, vararg axes: Axis): Region {
         val faces = Face.values().filter { axes.contains(it.axis) }
-        return shrink(amount, *faces.toTypedArray())
+        return changeBorders(amount, false, *faces.toTypedArray())
     }
 
     fun shrink(amount: Int, vararg faces: Face): Region {
@@ -166,22 +160,47 @@ data class Region(
     }
 
     private fun changeBorders(amount: Int, enlarge: Boolean, vararg faces: Face): Region {
-        var minEdge = Location(world, minX.toDouble(), minY.toDouble(), minZ.toDouble())
-        var maxEdge = Location(world, maxX.toDouble(), maxY.toDouble(), maxZ.toDouble())
+        var minEdge = edge1
+        var maxEdge = edge2
 
         val allFaces = if (faces.isEmpty()) Face.values() else faces
         allFaces.forEach { face ->
             val coordinateChange = amount * (if (enlarge xor face.positive) 1 else -1)
             val changingEdge = if (enlarge xor face.positive) maxEdge else minEdge
             val modifiedEdge = when (face.axis) {
-                Axis.X -> changingEdge.add(Vector(coordinateChange, 0, 0))
-                Axis.Y -> changingEdge.add(Vector(0, coordinateChange, 0))
-                Axis.Z -> changingEdge.add(Vector(0, 0, coordinateChange))
+                Axis.X -> Location(world, changingEdge.x + coordinateChange, changingEdge.y, changingEdge.z)
+                Axis.Y -> Location(world, changingEdge.x, changingEdge.y + coordinateChange, changingEdge.z)
+                Axis.Z -> Location(world, changingEdge.x, changingEdge.y, changingEdge.z + coordinateChange)
             }
             if (enlarge xor face.positive) maxEdge = modifiedEdge else minEdge = modifiedEdge
         }
 
         return Region(minEdge, maxEdge)
+    }
+
+    fun isCorner(location: Location): Boolean = intersectingAxis(location) == 3
+    fun isEdge(location: Location): Boolean = intersectingAxis(location) == 2
+    fun isFace(location: Location): Boolean = intersectingAxis(location) == 1
+
+    fun intersectingAxis(location: Location): Int {
+        var intersectingAxis = 0
+        if (location.x.toInt() == this.minX || location.x.toInt() == this.maxX) intersectingAxis++;
+        if (location.y.toInt() == this.minY || location.y.toInt() == this.maxY) intersectingAxis++;
+        if (location.z.toInt() == this.minZ || location.z.toInt() == this.maxZ) intersectingAxis++;
+        return intersectingAxis;
+    }
+
+    fun edges(): List<Location> {
+        return listOf(
+            Location(world, minX.toDouble(), minY.toDouble(), minZ.toDouble()),
+            Location(world, maxX.toDouble(), minY.toDouble(), minZ.toDouble()),
+            Location(world, minX.toDouble(), maxY.toDouble(), minZ.toDouble()),
+            Location(world, maxX.toDouble(), maxY.toDouble(), minZ.toDouble()),
+            Location(world, minX.toDouble(), minY.toDouble(), maxZ.toDouble()),
+            Location(world, maxX.toDouble(), minY.toDouble(), maxZ.toDouble()),
+            Location(world, minX.toDouble(), maxY.toDouble(), maxZ.toDouble()),
+            Location(world, maxX.toDouble(), maxY.toDouble(), maxZ.toDouble())
+        )
     }
 }
 
