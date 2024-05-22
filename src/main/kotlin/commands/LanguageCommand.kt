@@ -14,7 +14,6 @@ import t
 const val LANGUAGE_KEY = "language"
 const val GLOBAL_KEY = "global"
 const val GLOBAL_COMMAND = "-global"
-const val NOT_ADMIN_KEY = "not_admin"
 const val LANGUAGE_NOT_EXISTING = "lang_not_existing"
 
 @CustomCommand

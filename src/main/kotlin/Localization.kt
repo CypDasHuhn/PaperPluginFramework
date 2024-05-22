@@ -2,6 +2,8 @@ import com.google.gson.Gson
 import database.Language
 import database.Player
 import database.globalLanguage
+import database.language
+import org.bukkit.command.CommandSender
 import java.io.FileNotFoundException
 
 fun getLocalizedMessage(locale: Language?, messageKey: String, vararg replacements: Pair<String, String?>): String {
@@ -30,12 +32,11 @@ fun getLocalizedMessage(locale: Language?, messageKey: String, vararg replacemen
     return message as String
 }
 
-fun t(messageKey: String, player: Player, vararg replacements: Pair<String, String?>): String {
-    return getLocalizedMessage(player.language ?: globalLanguage, messageKey, *replacements)
-}
-
 fun t(messageKey: String, locale: Language?, vararg replacements: Pair<String, String?>): String {
     return getLocalizedMessage(locale ?: globalLanguage, messageKey, *replacements)
+}
+fun sendT(sender: CommandSender, language: Language?, messageKey: String, vararg replacements: Pair<String, String?>) {
+    sender.sendMessage(t(messageKey, language, *replacements))
 }
 
 class Locale(private var locale: Language?) {
@@ -43,4 +44,10 @@ class Locale(private var locale: Language?) {
     fun t(messageKey: String, vararg replacements: Pair<String, String?>): String {
         return getLocalizedMessage(actualLocale, messageKey, *replacements)
     }
+    fun sendT(sender: CommandSender, messageKey: String, vararg replacements: Pair<String, String?>) {
+        sender.sendMessage(t(messageKey, *replacements))
+    }
+}
+fun CommandSender.locale(): Locale {
+    return Locale(this.language())
 }

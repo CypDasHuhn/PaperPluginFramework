@@ -9,7 +9,7 @@ import org.bukkit.entity.Player
 
 @CustomCommand
 val interfaceCommand = RootArgument(
-    invoke = { sender, _, values ->
+    invoke = { sender, _, _ ->
         openTargetInterface(
             sender as Player,
             TestInterface.interfaceName,

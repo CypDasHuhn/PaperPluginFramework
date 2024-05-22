@@ -10,6 +10,7 @@ val defaultTrue: ArgumentPredicate = { _ -> true }
 fun returnString(): ArgumentHandler = { (_, _, str, _, _) -> str }
 
 lateinit var rootArguments: MutableList<RootArgument>
+var defaultErrorArgumentsOverflow: (ArgumentInfo) -> Unit = { (sender, _, _, _, _) -> sender.sendMessage("Too many Arguments!")}
 
 /** The Argument Class is what's used to model a segment inside a command.
  * Its content can very dynamically, depending on the argument Information.
@@ -45,6 +46,7 @@ open class Argument(
     open var errorMissing: ErrorLambda? = null,
     /** This is the field that is used to chain commands.*/
     open var followingArguments: List<Argument>? = null,
+    open var errorArgumentOverflow: ((ArgumentInfo) -> Unit)? = null,
     /** This is the key that you can later access the values stored with the [argumentHandler] inside [invoke] by.
      * You probably want to save this under a variable, else you can easily do stumblers by key mismatches. */
     open var key: String,
@@ -70,7 +72,8 @@ class RootArgument(
     /** This is a function that will be invoked once the system processes the command. use this to create
      * cached objects, or whatever else calculations you would do repeatedly else. Return false if you want
      * to early return the entire command processing, like if the sender type is wrong, or there are no permissions for this command.*/
-    var startingUnit: ((sender: CommandSender) -> Boolean)? = null
+    var startingUnit: ((sender: CommandSender) -> Boolean)? = null,
+    override var errorArgumentOverflow: ((ArgumentInfo) -> Unit)? = null
 ) : Argument(
     defaultTrue,
     null,
@@ -82,7 +85,8 @@ class RootArgument(
     false,
     null,
     followingArguments,
-    "label"
+    errorArgumentOverflow,
+    "label",
 )
 
 /** A sort of constructor which takes down the boilerplate of creating a simple Modifier Argument. */
@@ -150,6 +154,11 @@ fun goThroughArguments(
     var arguments: MutableList<Argument> =
         rootArguments.filter { it.labels.contains(label) } as MutableList<Argument>
 
+    var errorArgumentOverflow: ((ArgumentInfo) -> Unit)? = null;
+    arguments.first().errorArgumentOverflow?.let {
+        val errorArgumentOverflow = it
+    }
+
     LinkedList<Argument>()
 
     if (arguments.first() is RootArgument && (arguments.first() as RootArgument).startingUnit != null) { // invoke the starting unit (if existing)
@@ -163,6 +172,10 @@ fun goThroughArguments(
 
         val currentArgument = arguments.getArgument(argInfo) // found argument
             ?: return null
+
+        currentArgument.errorArgumentOverflow?.let {
+            errorArgumentOverflow = it
+        }
 
         if (!isTabCompleter) currentArgument.isValid?.let {  // error handling
             val (isValid, key) = it(argInfo)
@@ -183,7 +196,13 @@ fun goThroughArguments(
                 arguments = arguments.filter { it != currentArgument }.toMutableList()
             } else if (currentArgument.followingArguments != null) {
                 arguments = currentArgument.followingArguments as MutableList<Argument>
-            } else if (isTabCompleter) {
+            } else {
+                if (!isTabCompleter) {
+                    if (errorArgumentOverflow == null)
+                        defaultErrorArgumentsOverflow(argInfo)
+                    else
+                        errorArgumentOverflow!!(argInfo)
+                }
                 return ArrayList()
             }
             continue
