@@ -24,7 +24,12 @@ object Cache {
         }
     }
 
-    fun set(key: String, sender: CommandSender? = null, value: Any, clearTime: Number? = null) {
+    fun set(
+        key: String,
+        sender: CommandSender? = null,
+        value: Any,
+        clearTime: Number? = null
+    ) {
         if (sender != null) {
             playerCache[Pair(sender, key)] = value
         } else {

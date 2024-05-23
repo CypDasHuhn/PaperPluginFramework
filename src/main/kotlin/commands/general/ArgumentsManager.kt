@@ -10,7 +10,8 @@ val defaultTrue: ArgumentPredicate = { _ -> true }
 fun returnString(): ArgumentHandler = { (_, _, str, _, _) -> str }
 
 lateinit var rootArguments: MutableList<RootArgument>
-var defaultErrorArgumentsOverflow: (ArgumentInfo) -> Unit = { (sender, _, _, _, _) -> sender.sendMessage("Too many Arguments!")}
+var defaultErrorArgumentsOverflow: (ArgumentInfo) -> Unit =
+    { (sender, _, _, _, _) -> sender.sendMessage("Too many Arguments!") }
 
 /** The Argument Class is what's used to model a segment inside a command.
  * Its content can very dynamically, depending on the argument Information.
@@ -154,9 +155,9 @@ fun goThroughArguments(
     var arguments: MutableList<Argument> =
         rootArguments.filter { it.labels.contains(label) } as MutableList<Argument>
 
-    var errorArgumentOverflow: ((ArgumentInfo) -> Unit)? = null;
+    var errorArgumentOverflow: ((ArgumentInfo) -> Unit)? = null
     arguments.first().errorArgumentOverflow?.let {
-        val errorArgumentOverflow = it
+        errorArgumentOverflow = it
     }
 
     LinkedList<Argument>()
@@ -182,10 +183,11 @@ fun goThroughArguments(
             if (!isValid) {
                 currentArgument.errorInvalid!!(argInfo, key ?: "")
                 return null
+            } else {
+                values[currentArgument.key] = currentArgument.argumentHandler(argInfo) // fill in values
             }
         }
 
-        values[currentArgument.key] = currentArgument.argumentHandler(argInfo) // fill in values
 
         arguments.filter { arg -> arg.isModifier }
             .forEach { arg -> values.putIfAbsent(arg.key, false) } // set every modifier to false, if absent

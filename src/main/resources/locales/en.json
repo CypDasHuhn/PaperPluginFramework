@@ -1,12 +1,12 @@
 {
-  "lang_de": "German",
-  "lang_en": "English",
-  "lang_pl": "Polish",
+  "lang_de": "german",
+  "lang_en": "english",
+  "lang_pl": "polish",
   "not_admin": "You don't have Admin permissions!",
   "not_valid_language": "\"${lang}\" isn't a valid language!",
   "scale_global": "Global",
   "scale_your": "Your",
-  "set_language": "${scale} language was changed to english!",
+  "set_language": "${scale} language was changed to ${lang}!",
   "specify_language": "Please name a language!",
   "welcome_message": "Welcome!"
 }

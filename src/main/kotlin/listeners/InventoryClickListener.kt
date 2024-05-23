@@ -1,6 +1,6 @@
 package listeners
 
-import interfaces.TestInterfaceContext
+import database.getContext
 import interfaces.general.ClickDTO
 import interfaces.general.ContextDTO
 import interfaces.general.getInterfaces
@@ -32,12 +32,18 @@ object InventoryClickListener : Listener {
             }
 
         val clickDTO = ClickDTO(event, player, event.currentItem!!, event.currentItem!!.type, event.slot)
-        val context = TestInterfaceContext(2, "Guck!")
 
-        correspondingInterface.clickableItems
-            .firstOrNull{ currentItem -> currentItem.condition(clickDTO.slot, context)}
-            .run {
-                this?.action?.let { it(clickDTO, context, event) } ?: return
-            }
+        val context = getContext(player, interfaceName) ?: ContextDTO()
+
+        var cancelEvent =
+
+            correspondingInterface.clickableItems
+                .firstOrNull { currentItem -> currentItem.pCondition(clickDTO.slot, context) }
+                .run {
+                    this?.pAction?.let {
+                        it(clickDTO, context, event)
+
+                    } ?: return
+                }
     }
 }

@@ -15,7 +15,7 @@ object Completer : TabCompleter {
             ?: return ArrayList()
     }
 
-    fun List<String>.returnWithStarting(str: String): List<String> {
-        return this.filter { it.startsWith(str) }
+    fun List<String>.returnWithStarting(str: String, ignoreCase: Boolean = false): List<String> {
+        return this.filter { it.startsWith(str, ignoreCase = ignoreCase) }
     }
 }

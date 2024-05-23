@@ -1,53 +1,67 @@
+import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
 import database.Language
-import database.Player
 import database.globalLanguage
 import database.language
 import org.bukkit.command.CommandSender
 import java.io.FileNotFoundException
+import java.io.InputStreamReader
+import java.nio.charset.StandardCharsets
 
-fun getLocalizedMessage(locale: Language?, messageKey: String, vararg replacements: Pair<String, String?>): String {
-    val cacheKey = "${locale ?: globalLanguage}_$messageKey"
 
-    var message = Cache.getOrSet(cacheKey, null, {
-        val lowerCaseLang = (locale ?: globalLanguage).toString().lowercase()
-        val resourcePath = "/locales/${lowerCaseLang}.json"
-        val gson = Gson()
+object Localization {
+    fun getLocalizedMessage(locale: Language?, messageKey: String, vararg replacements: Pair<String, String?>): String {
+        val cacheKey = "${locale ?: globalLanguage}_$messageKey"
 
-        val inputStream = ClassLoader.getSystemResourceAsStream(resourcePath)
-            ?: throw FileNotFoundException("Resource not found: $resourcePath")
+        var message = Cache.getOrSet(cacheKey, null, {
+            val selectedLanguage = locale ?: globalLanguage
+            val resourcePath = "/locales/${selectedLanguage.toString().lowercase()}.json"
+            val inputStream = javaClass.getResourceAsStream(resourcePath)
+                ?: throw FileNotFoundException("Resource not found: $resourcePath")
 
-        val jsonString = inputStream.bufferedReader().use { it.readText() }
+            val gson = Gson()
+            val type = object : TypeToken<Map<String, String>>() {}.type
+            val localization: Map<String, String> =
+                gson.fromJson(InputStreamReader(inputStream, StandardCharsets.UTF_8), type)
 
-        val localization: Map<String, String> = gson.fromJson(jsonString, Map::class.java) as Map<String, String>
-        return@getOrSet localization[messageKey] as String
-    }, 60 * 1000)
+            localization[messageKey]
+        }, 60 * 1000)
 
-    if (message != null) {
-        for ((key, value) in replacements) {
-            message = message!!.replace("\${$key}", value ?: "")
+        if (message != null) {
+            for ((key, value) in replacements) {
+                message = message!!.replace("\${$key}", value ?: "")
+            }
+        } else {
+            message = "Message not found"
         }
-    }
 
-    return message as String
+        return message!!
+    }
 }
 
 fun t(messageKey: String, locale: Language?, vararg replacements: Pair<String, String?>): String {
-    return getLocalizedMessage(locale ?: globalLanguage, messageKey, *replacements)
+    return Localization.getLocalizedMessage(locale ?: globalLanguage, messageKey, *replacements)
 }
-fun sendT(sender: CommandSender, language: Language?, messageKey: String, vararg replacements: Pair<String, String?>) {
+
+fun tSend(sender: CommandSender, messageKey: String, language: Language?, vararg replacements: Pair<String, String?>) {
     sender.sendMessage(t(messageKey, language, *replacements))
 }
 
-class Locale(private var locale: Language?) {
+fun tSend(sender: CommandSender, messageKey: String, vararg replacements: Pair<String, String?>) {
+    sender.sendMessage(t(messageKey, sender.language(), *replacements))
+}
+
+class Locale(var locale: Language?) {
     private val actualLocale: Language by lazy { locale ?: globalLanguage }
     fun t(messageKey: String, vararg replacements: Pair<String, String?>): String {
-        return getLocalizedMessage(actualLocale, messageKey, *replacements)
+        return Localization.getLocalizedMessage(actualLocale, messageKey, *replacements)
     }
-    fun sendT(sender: CommandSender, messageKey: String, vararg replacements: Pair<String, String?>) {
+
+    fun tSend(sender: CommandSender, messageKey: String, vararg replacements: Pair<String, String?>) {
         sender.sendMessage(t(messageKey, *replacements))
     }
 }
+
 fun CommandSender.locale(): Locale {
     return Locale(this.language())
 }

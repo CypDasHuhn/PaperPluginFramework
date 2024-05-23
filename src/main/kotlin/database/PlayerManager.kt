@@ -3,6 +3,7 @@ package database
 import Cache
 import org.bukkit.command.CommandSender
 import org.bukkit.command.ConsoleCommandSender
+import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.insert
@@ -19,6 +20,7 @@ enum class Language {
 }
 
 data class Player(
+    val id: EntityID<Int>,
     val uuid: String,
     var username: String,
     var language: Language?,
@@ -34,6 +36,7 @@ object Players : IntIdTable() {
 
 fun ResultRow.toPlayer(): Player {
     return Player(
+        id = this[Players.id],
         uuid = this[Players.uuid],
         username = this[Players.username],
         language = if (this[Players.language] != null) Language.valueOf(this[Players.language] as String) else null,
@@ -128,4 +131,8 @@ fun CommandSender.isAdmin(): Boolean {
     return if (this is org.bukkit.entity.Player)
         cachedPlayerData(this).isAdmin
     else this is ConsoleCommandSender
+}
+
+fun org.bukkit.entity.Player.dBPlayer(): Player {
+    return getPlayerByUUID(this.uniqueId.toString())!!
 }

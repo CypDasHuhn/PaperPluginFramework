@@ -1,11 +1,11 @@
 {
-  "lang_de": "Niemiecki",
-  "lang_en": "Angielski",
-  "lang_pl": "Polski",
+  "lang_de": "niemiecki",
+  "lang_en": "angielski",
+  "lang_pl": "polski",
   "not_admin": "Nie masz uprawnień administratora!",
   "not_valid_language": "",
   "scale_global": "Globalny",
   "scale_your": "Twój",
-  "set_language": "${scale} język został zmieniony na polski!",
+  "set_language": "${scale} język został zmieniony na ${lang}!",
   "welcome_message": "Witaj!"
 }

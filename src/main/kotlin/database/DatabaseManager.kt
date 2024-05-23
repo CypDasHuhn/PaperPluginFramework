@@ -15,6 +15,6 @@ fun initDatabase(pPlugin: JavaPlugin) {
     Database.connect("jdbc:sqlite:$databasePath", "org.sqlite.JDBC")
 
     transaction {
-        SchemaUtils.createMissingTablesAndColumns(Players)
+        SchemaUtils.createMissingTablesAndColumns(Players, InterfaceContext)
     }
 }

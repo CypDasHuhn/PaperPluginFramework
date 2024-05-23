@@ -1,13 +1,15 @@
 package interfaces.general
 
+import Cache
+import database.updateContext
 import interfaces.TestInterface
-import io.github.classgraph.ClassGraph
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
+import kotlin.reflect.KClass
 
 typealias InterfaceName = String
 
@@ -31,16 +33,23 @@ fun getInterfaces(): List<Interface> {
     }*/
 }
 
+const val CHANGES_INTERFACE_KEY = "changes_interface"
+
 /** This function opens the interface it could find depending on the [interfaceName]
  * for the given [player] applied with the current state of the interface ([context]). */
 fun openTargetInterface(player: Player, interfaceName: String, context: ContextDTO) {
-    val targetInterface =
-        registeredInterfaces.firstOrNull { currentInterface -> currentInterface.interfaceName == interfaceName } ?: return
+    Cache.set(CHANGES_INTERFACE_KEY, player, true, 1000)
 
+    val targetInterface =
+        registeredInterfaces.firstOrNull { currentInterface -> currentInterface.interfaceName == interfaceName }
+            ?: return
 
     playerInterfaceMap[player] = interfaceName
 
     val inventory = targetInterface.getInventory(player, context).fillInventory(targetInterface.clickableItems, context)
+
+    updateContext(player.uniqueId.toString(), interfaceName, context)
+
     player.openInventory(inventory)
 }
 
@@ -48,8 +57,8 @@ fun openTargetInterface(player: Player, interfaceName: String, context: ContextD
  * and the current Interface State ([context]). */
 private fun Inventory.fillInventory(clickableItems: List<ClickableItem>, context: ContextDTO): Inventory {
     for (slot in 0 until this.size) {
-        clickableItems.firstOrNull { currentItem -> currentItem.condition(slot, context) }?.let {
-            this@fillInventory.setItem(slot, it.itemStackCreator(slot, context))
+        clickableItems.firstOrNull { currentItem -> currentItem.pCondition(slot, context) }?.let {
+            this@fillInventory.setItem(slot, it.pItemStackCreator(slot, context))
         }
     }
     return this
@@ -58,14 +67,24 @@ private fun Inventory.fillInventory(clickableItems: List<ClickableItem>, context
 typealias Slot = Int
 
 /** A [ClickableItem] is a model of an [ItemStack] inside an [Interface] which can be interacted with.*/
-data class ClickableItem(
-    /** controls when the program recognizes that it should be placed or got clicked. */
-    var condition: (Slot, ContextDTO) -> Boolean,
-    /** A function that returns an [ItemStack] when the condition was found. */
-    var itemStackCreator: (Slot, ContextDTO) -> ItemStack,
-    /** A function that is called when the condition was found. */
-    var action: (ClickDTO, ContextDTO, InventoryClickEvent) -> Unit
-)
+class ClickableItem// Using Any to accept both Boolean and Unit actions
+<T>(
+    condition: (Slot, ContextDTO) -> Boolean,
+    itemStackCreator: (Slot, ContextDTO) -> ItemStack,
+    action: (ClickDTO, ContextDTO, InventoryClickEvent) -> T
+) {
+    var pCondition: (Slot, ContextDTO) -> Boolean = condition
+    var pItemStackCreator: (Slot, ContextDTO) -> ItemStack = itemStackCreator
+    var pAction: (ClickDTO, ContextDTO, InventoryClickEvent) -> Any = when (action) {
+        is (ClickDTO, ContextDTO, InventoryClickEvent) -> Boolean -> action
+        is (ClickDTO, ContextDTO, InventoryClickEvent) -> Unit -> { click, context, event ->
+            action(click, context, event)
+            true
+        }
+
+        else -> throw IllegalArgumentException("Invalid action type")
+    }
+}
 
 data class ClickDTO(
     var event: InventoryClickEvent,
@@ -82,7 +101,12 @@ open class ContextDTO
 /** An Instance of Interface is a model of a UI component.
  * It's main ingredient is [clickableItems], which get resolved dynamically.
  * The field [interfaceName] is the key connected to the particular Interface. */
-open class Interface(val interfaceName: String, val clickableItems: List<ClickableItem>) {
+open class Interface(
+    val interfaceName: String,
+    val contextClass: KClass<out ContextDTO>,
+    val clickableItems: List<ClickableItem>,
+    val cancelEvent: (ClickDTO, ContextDTO, InventoryClickEvent) -> Boolean = { _, _, _ -> true }
+) {
     /** The generator of this interface. Its intended use is to be overwritten, for actual customization
      * The fields [player] and [context] by default aren't actually used, but by that you can use them if you want too. */
     open fun getInventory(player: Player?, context: ContextDTO?): Inventory {

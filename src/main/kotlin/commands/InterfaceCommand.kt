@@ -2,6 +2,7 @@ package commands
 
 import commands.general.CustomCommand
 import commands.general.RootArgument
+import database.getOrDefaultContext
 import interfaces.TestInterface
 import interfaces.TestInterfaceContext
 import interfaces.general.openTargetInterface
@@ -13,7 +14,7 @@ val interfaceCommand = RootArgument(
         openTargetInterface(
             sender as Player,
             TestInterface.interfaceName,
-            TestInterfaceContext(0, "test")
+            getOrDefaultContext(sender, TestInterface.interfaceName) { TestInterfaceContext(0, "test") }
         )
     },
     labels = listOf("interface")

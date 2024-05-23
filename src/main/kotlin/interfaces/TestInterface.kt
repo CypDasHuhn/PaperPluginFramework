@@ -11,22 +11,23 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 
-object TestInterface : Interface("test", listOf(
+object TestInterface : Interface("test", TestInterfaceContext::class, listOf(
     ClickableItem(
         condition = { slot, _ -> slot == 9 },
         itemStackCreator = { _, _ -> ItemStack(Material.GRASS_BLOCK) },
-        action = { _, context, event -> event.whoClicked.sendMessage((context as TestInterfaceContext).itemName) }
-    ),
-    ClickableItem(
-        condition = { slot, context -> slot < (context as TestInterfaceContext).amount },
-        itemStackCreator = { slot, context -> ItemStack(Material.RED_STAINED_GLASS_PANE) },
-        action = { slot, context, event ->
+        action = { _, context, event ->
+            event.whoClicked.sendMessage((context as TestInterfaceContext).itemName)
         }
     ),
     ClickableItem(
-        condition = { slot, context -> slot == 18 },
-        itemStackCreator = { slot, context -> ItemStack(Material.OAK_BUTTON) },
-        action = { slot, context, event ->
+        condition = { slot, context -> slot < (context as TestInterfaceContext).amount },
+        itemStackCreator = { _, _ -> ItemStack(Material.RED_STAINED_GLASS_PANE) },
+        action = { _, _, _ -> }
+    ),
+    ClickableItem(
+        condition = { slot, _ -> slot == 18 },
+        itemStackCreator = { _, _ -> ItemStack(Material.OAK_BUTTON) },
+        action = { _, context, event ->
             val testContext = (context as TestInterfaceContext)
             if (event.isLeftClick && context.amount < 9) {
                 testContext.amount++
@@ -38,7 +39,7 @@ object TestInterface : Interface("test", listOf(
     )
 )) {
     override fun getInventory(player: Player?, context: ContextDTO?): Inventory {
-        return Bukkit.createInventory(null, 9*6, interfaceName)
+        return Bukkit.createInventory(null, 9 * 6, interfaceName)
     }
 }
 
