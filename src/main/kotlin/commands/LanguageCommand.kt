@@ -1,16 +1,16 @@
 package commands
 
-import commands.general.Argument
-import commands.general.Completer.returnWithStarting
-import commands.general.CustomCommand
-import commands.general.RootArgument
-import commands.general.simpleModifierArgument
-import database.*
+import frame.commands.Argument
+import frame.commands.Completer.returnWithStarting
+import frame.commands.CustomCommand
+import frame.commands.RootArgument
+import frame.commands.simpleModifierArgument
+import frame.database.*
+import frame.t
+import frame.tSend
 import org.bukkit.command.CommandSender
 import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
-import t
-import tSend
 
 const val LANGUAGE_KEY = "language"
 const val GLOBAL_KEY = "global"

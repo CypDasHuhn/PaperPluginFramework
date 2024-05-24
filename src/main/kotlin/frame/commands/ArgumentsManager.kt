@@ -1,6 +1,6 @@
-package commands.general
+package frame.commands
 
-import commands.general.Completer.returnWithStarting
+import frame.commands.Completer.returnWithStarting
 import io.github.classgraph.ClassGraph
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender

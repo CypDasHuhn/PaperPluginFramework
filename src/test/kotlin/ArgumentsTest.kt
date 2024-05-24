@@ -1,5 +1,5 @@
-import commands.general.Argument
-import commands.general.getCommands
+import frame.commands.Argument
+import frame.commands.getCommands
 import kotlin.test.Test
 
 class ArgumentTest {

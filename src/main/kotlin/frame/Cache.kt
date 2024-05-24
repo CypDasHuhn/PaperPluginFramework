@@ -1,3 +1,5 @@
+package frame
+
 import org.bukkit.command.CommandSender
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit

@@ -1,3 +1,5 @@
+package frame
+
 import org.bukkit.Chunk
 import org.bukkit.Location
 import org.bukkit.World
@@ -184,10 +186,10 @@ data class Region(
 
     fun intersectingAxis(location: Location): Int {
         var intersectingAxis = 0
-        if (location.x.toInt() == this.minX || location.x.toInt() == this.maxX) intersectingAxis++;
-        if (location.y.toInt() == this.minY || location.y.toInt() == this.maxY) intersectingAxis++;
-        if (location.z.toInt() == this.minZ || location.z.toInt() == this.maxZ) intersectingAxis++;
-        return intersectingAxis;
+        if (location.x.toInt() == this.minX || location.x.toInt() == this.maxX) intersectingAxis++
+        if (location.y.toInt() == this.minY || location.y.toInt() == this.maxY) intersectingAxis++
+        if (location.z.toInt() == this.minZ || location.z.toInt() == this.maxZ) intersectingAxis++
+        return intersectingAxis
     }
 
     fun edges(): List<Location> {

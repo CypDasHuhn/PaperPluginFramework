@@ -1,6 +1,6 @@
-package database
+package frame.database
 
-import Cache
+import frame.Cache
 import org.bukkit.command.CommandSender
 import org.bukkit.command.ConsoleCommandSender
 import org.jetbrains.exposed.dao.id.EntityID

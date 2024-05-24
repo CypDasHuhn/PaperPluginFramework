@@ -1,11 +1,11 @@
 package commands
 
-import commands.general.CustomCommand
-import commands.general.RootArgument
-import database.getOrDefaultContext
+import frame.commands.CustomCommand
+import frame.commands.RootArgument
+import frame.database.getOrDefaultContext
+import frame.`interface`.openTargetInterface
 import interfaces.TestInterface
 import interfaces.TestInterfaceContext
-import interfaces.general.openTargetInterface
 import org.bukkit.entity.Player
 
 @CustomCommand

@@ -1,10 +1,10 @@
-package listeners
+package frame.listeners
 
-import database.getContext
-import interfaces.general.ClickDTO
-import interfaces.general.ContextDTO
-import interfaces.general.getInterfaces
-import interfaces.general.playerInterfaceMap
+import frame.database.getContext
+import frame.`interface`.ClickDTO
+import frame.`interface`.ContextDTO
+import frame.`interface`.getInterfaces
+import frame.`interface`.playerInterfaceMap
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -40,7 +40,7 @@ object InventoryClickListener : Listener {
             correspondingInterface.clickableItems
                 .firstOrNull { currentItem -> currentItem.pCondition(clickDTO.slot, context) }
                 .run {
-                    this?.pAction?.let {
+                    this.pAction?.let {
                         it(clickDTO, context, event)
 
                     } ?: return

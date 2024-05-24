@@ -1,3 +1,5 @@
+package frame
+
 import org.bukkit.Bukkit
 import org.bukkit.boss.BarColor
 import org.bukkit.boss.BarStyle
@@ -15,12 +17,14 @@ sealed class ProgressBar(
             forPlayer(player)
         }
     }
+
     protected abstract fun forPlayer(player: Player)
 
     fun addPlayers(vararg players: Player) {
         this.players.addAll(players)
         updateBar()
     }
+
     fun removePlayers(vararg players: Player) {
         this.players.removeAll(players.toSet())
         updateBar()
@@ -31,7 +35,7 @@ class BossProgressBar(
     var title: String,
     var barColor: BarColor = BarColor.PURPLE,
     var barStyle: BarStyle = BarStyle.SOLID,
-) : ProgressBar(0.0){
+) : ProgressBar(0.0) {
     private var bossBar: BossBar? = null
 
     var pTitle: String by Delegates.observable(title) { _, _, _ -> updateBar() }
@@ -62,7 +66,7 @@ class BossProgressBar(
     }
 }
 
-class ExperienceProgressBar() : ProgressBar(0.0) {
+class ExperienceProgressBar : ProgressBar(0.0) {
     override var progress: Double = 0.0
         set(value) {
             field = value

@@ -1,4 +1,4 @@
-package listeners
+package frame.listeners
 
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
@@ -94,6 +94,7 @@ class ItemEffect() {
     lateinit var condition: (PlayerInteractEvent) -> Boolean
     lateinit var clickEffect: (PlayerInteractEvent) -> Unit
     lateinit var subEffects: List<ItemEffect>
+
     constructor(
         condition: (PlayerInteractEvent) -> Boolean,
         clickEffect: (PlayerInteractEvent) -> Unit,

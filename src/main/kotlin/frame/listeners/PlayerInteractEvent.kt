@@ -1,4 +1,4 @@
-package listeners
+package frame.listeners
 
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -23,7 +23,7 @@ object PlayerInteractEvent : Listener {
                                 currentEffects = effect.subEffects
                             } else {
                                 effect.clickEffect(event)
-                                break;
+                                break
                             }
                             break
                         }
@@ -31,7 +31,7 @@ object PlayerInteractEvent : Listener {
 
                     if (!foundEffect) {
                         usableItem.clickEffect(event)
-                        break;
+                        break
                     }
                 }
                 break

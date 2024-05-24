@@ -1,7 +1,6 @@
-package listeners
+package frame.listeners
 
-import database.insertToDatabase
-import org.bukkit.Bukkit
+import frame.database.insertToDatabase
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent

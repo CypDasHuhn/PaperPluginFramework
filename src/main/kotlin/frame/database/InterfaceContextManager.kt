@@ -1,8 +1,8 @@
-package database
+package frame.database
 
 import com.google.gson.Gson
-import interfaces.general.ContextDTO
-import interfaces.general.getInterfaces
+import frame.`interface`.ContextDTO
+import frame.`interface`.getInterfaces
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
@@ -43,7 +43,7 @@ fun updateContext(playerUUID: String, interfaceName: String, context: ContextDTO
             } else {
                 InterfaceContext.insert {
                     it[player] = playerId
-                    it[this.interfaceName] = interfaceName
+                    it[InterfaceContext.interfaceName] = interfaceName
                     it[content] = jsonContent
                 }
             }

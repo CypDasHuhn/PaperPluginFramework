@@ -1,3 +1,5 @@
+package frame
+
 import org.bukkit.Location
 import org.bukkit.Particle
 import org.bukkit.entity.Entity
@@ -40,6 +42,7 @@ enum class Face(
 class ParticleBox(
 ) {
     var steps = 1.0
+
     constructor(
         region: Region,
         particle: Particle,

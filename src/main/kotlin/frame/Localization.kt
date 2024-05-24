@@ -1,8 +1,10 @@
+package frame
+
 import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
-import database.Language
-import database.globalLanguage
-import database.language
+import frame.database.Language
+import frame.database.globalLanguage
+import frame.database.language
 import org.bukkit.command.CommandSender
 import java.io.FileNotFoundException
 import java.io.InputStreamReader

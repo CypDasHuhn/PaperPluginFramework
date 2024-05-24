@@ -1,8 +1,8 @@
-package listeners
+package frame.listeners
 
-import Cache
-import interfaces.general.CHANGES_INTERFACE_KEY
-import interfaces.general.setPlayerEmpty
+import frame.Cache
+import frame.`interface`.CHANGES_INTERFACE_KEY
+import frame.`interface`.setPlayerEmpty
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener

@@ -1,7 +1,7 @@
-package interfaces.general
+package frame.`interface`
 
-import Cache
-import database.updateContext
+import frame.Cache
+import frame.database.updateContext
 import interfaces.TestInterface
 import org.bukkit.Bukkit
 import org.bukkit.Material

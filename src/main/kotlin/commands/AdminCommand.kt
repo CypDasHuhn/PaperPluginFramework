@@ -1,8 +1,8 @@
 package commands
 
-import commands.general.Argument
-import commands.general.RootArgument
-import database.*
+import frame.commands.Argument
+import frame.commands.RootArgument
+import frame.database.*
 
 const val PLAYER_KEY = "player"
 const val USER_NOT_ADMIN = "user_not_admin"

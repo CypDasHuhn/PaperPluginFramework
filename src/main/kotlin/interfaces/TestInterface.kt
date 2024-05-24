@@ -1,10 +1,10 @@
 package interfaces
 
+import frame.`interface`.ClickableItem
+import frame.`interface`.ContextDTO
+import frame.`interface`.Interface
+import frame.`interface`.openTargetInterface
 import interfaces.TestInterface.interfaceName
-import interfaces.general.ClickableItem
-import interfaces.general.ContextDTO
-import interfaces.general.Interface
-import interfaces.general.openTargetInterface
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.entity.Player

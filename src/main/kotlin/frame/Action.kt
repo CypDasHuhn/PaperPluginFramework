@@ -1,3 +1,5 @@
+package frame
+
 import kotlinx.coroutines.*
 import kotlin.coroutines.coroutineContext
 
@@ -18,6 +20,7 @@ data class ProgressData<T>(
     val value: MutableValue<T>,
     val progressHandler: suspend (MutableValue<T>) -> Unit,
 )
+
 data class MutableValue<T>(var value: T)
 
 suspend fun <T> startWithProgress(
@@ -52,7 +55,7 @@ suspend fun main() {
     startWithProgress(
         delay = 50,
         progressData = ProgressData(
-        50,
+            50,
             MutableValue("init"),
         ) { value ->
             println(value)
