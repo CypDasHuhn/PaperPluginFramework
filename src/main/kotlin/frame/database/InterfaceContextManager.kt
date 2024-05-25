@@ -1,7 +1,7 @@
 package frame.database
 
 import com.google.gson.Gson
-import frame.`interface`.ContextDTO
+import frame.`interface`.Context
 import frame.`interface`.getInterfaces
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -26,7 +26,7 @@ fun ResultRow.toContext(): DBInterfaceContext {
     )
 }
 
-fun updateContext(playerUUID: String, interfaceName: String, context: ContextDTO) {
+fun updateContext(playerUUID: String, interfaceName: String, context: Context) {
     val gson = Gson()
     val jsonContent = gson.toJson(context)
     transaction {
@@ -62,7 +62,7 @@ fun readContext(player: Player, interfaceName: String): DBInterfaceContext? {
     }
 }
 
-fun getContext(player: Player, interfaceName: String): ContextDTO? {
+fun getContext(player: Player, interfaceName: String): Context? {
     val data = readContext(player, interfaceName) ?: return null
     val clazz = getInterfaces().firstOrNull { it.interfaceName == data.interfaceName }?.contextClass ?: return null
 
@@ -70,7 +70,7 @@ fun getContext(player: Player, interfaceName: String): ContextDTO? {
     return gson.fromJson(data.content as String, clazz.java)
 }
 
-fun <T : ContextDTO> getOrDefaultContext(player: Player, interfaceName: String, defaultSupplier: () -> T): T {
+fun <T : Context> getOrDefaultContext(player: Player, interfaceName: String, defaultSupplier: () -> T): T {
     val data = readContext(player, interfaceName) ?: return defaultSupplier()
     val clazz =
         getInterfaces().firstOrNull { it.interfaceName == data.interfaceName }?.contextClass ?: return defaultSupplier()

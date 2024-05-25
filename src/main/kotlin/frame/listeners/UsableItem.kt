@@ -45,18 +45,20 @@ fun InventoryClickEvent.hasClicks(vararg clickStates: ClickState): Boolean {
 }
 
 
-fun ItemStack.create(
+fun createItem(
     material: Material,
     name: Component? = null,
     description: List<Component>? = null,
     amount: Int = 0,
     nbt: Any? = null,
-) {
+): ItemStack {
     val item = ItemStack(material, amount)
     val itemMeta = item.itemMeta
     if (name != null) itemMeta.displayName(name)
     if (description != null) itemMeta.lore(description)
     item.itemMeta = itemMeta
+
+    return item
 }
 
 

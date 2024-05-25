@@ -239,7 +239,7 @@ fun goThroughArguments(
 
 /**  ChatGPT generated Code.
  * Returns every instance of Argument which is annotated with @Argument. */
-fun getCommands(): List<RootArgument> {
+fun getCommands(): MutableList<RootArgument> {
     val commands = mutableListOf<RootArgument>()
     ClassGraph()
         .enableAllInfo()

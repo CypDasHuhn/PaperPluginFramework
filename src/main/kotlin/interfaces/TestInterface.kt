@@ -1,7 +1,7 @@
 package interfaces
 
 import frame.`interface`.ClickableItem
-import frame.`interface`.ContextDTO
+import frame.`interface`.Context
 import frame.`interface`.Interface
 import frame.`interface`.openTargetInterface
 import interfaces.TestInterface.interfaceName
@@ -22,7 +22,6 @@ object TestInterface : Interface("test", TestInterfaceContext::class, listOf(
     ClickableItem(
         condition = { slot, context -> slot < (context as TestInterfaceContext).amount },
         itemStackCreator = { _, _ -> ItemStack(Material.RED_STAINED_GLASS_PANE) },
-        action = { _, _, _ -> }
     ),
     ClickableItem(
         condition = { slot, _ -> slot == 18 },
@@ -31,14 +30,14 @@ object TestInterface : Interface("test", TestInterfaceContext::class, listOf(
             val testContext = (context as TestInterfaceContext)
             if (event.isLeftClick && context.amount < 9) {
                 testContext.amount++
-            } else if (context.amount > 0) {
+            } else if (event.isRightClick && context.amount > 0) {
                 testContext.amount--
             }
             openTargetInterface(event.whoClicked as Player, interfaceName, testContext)
         }
     )
 )) {
-    override fun getInventory(player: Player?, context: ContextDTO?): Inventory {
+    override fun getInventory(player: Player?, context: Context?): Inventory {
         return Bukkit.createInventory(null, 9 * 6, interfaceName)
     }
 }
@@ -46,4 +45,4 @@ object TestInterface : Interface("test", TestInterfaceContext::class, listOf(
 class TestInterfaceContext(
     var amount: Int,
     val itemName: String
-) : ContextDTO()
+) : Context()

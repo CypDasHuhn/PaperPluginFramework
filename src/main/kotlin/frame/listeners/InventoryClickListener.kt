@@ -1,10 +1,7 @@
 package frame.listeners
 
 import frame.database.getContext
-import frame.`interface`.ClickDTO
-import frame.`interface`.ContextDTO
-import frame.`interface`.getInterfaces
-import frame.`interface`.playerInterfaceMap
+import frame.`interface`.*
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -14,36 +11,6 @@ import org.bukkit.inventory.PlayerInventory
 object InventoryClickListener : Listener {
     @EventHandler
     fun onInventoryClick(event: InventoryClickEvent) {
-        if (event.inventory is PlayerInventory) return
-
-        val player = event.whoClicked as Player
-        val interfaceName = playerInterfaceMap[player] ?: return
-
-        if (interfaceName.isEmpty()) return
-
-        event.isCancelled = true
-
-        if (event.currentItem == null) return
-
-        val correspondingInterface = getInterfaces()
-            .firstOrNull { currentInterface -> currentInterface.interfaceName == interfaceName }
-            .run {
-                this ?: return
-            }
-
-        val clickDTO = ClickDTO(event, player, event.currentItem!!, event.currentItem!!.type, event.slot)
-
-        val context = getContext(player, interfaceName) ?: ContextDTO()
-
-        var cancelEvent =
-
-            correspondingInterface.clickableItems
-                .firstOrNull { currentItem -> currentItem.pCondition(clickDTO.slot, context) }
-                .run {
-                    this.pAction?.let {
-                        it(clickDTO, context, event)
-
-                    } ?: return
-                }
+        handleInventoryClick(event)
     }
 }
