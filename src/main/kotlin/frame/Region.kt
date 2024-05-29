@@ -21,6 +21,13 @@ data class Region(
     val maxY: Int by lazy { edge1.blockY.coerceAtLeast(edge2.blockY) }
     val maxZ: Int by lazy { edge1.blockZ.coerceAtLeast(edge2.blockZ) }
 
+    val minYD: Double by lazy { minY.toDouble()}
+    val minXD: Double by lazy { minX.toDouble()}
+    val minZD: Double by lazy { minZ.toDouble()}
+    val maxXD: Double by lazy { maxX.toDouble() }
+    val maxYD: Double by lazy { maxY.toDouble() }
+    val maxZD: Double by lazy { maxZ.toDouble() }
+
     val sizeX: Int by lazy { maxX - minX + 1 }
     val sizeY: Int by lazy { maxY - minY + 1 }
     val sizeZ: Int by lazy { maxZ - minZ + 1 }
@@ -186,22 +193,22 @@ data class Region(
 
     fun intersectingAxis(location: Location): Int {
         var intersectingAxis = 0
-        if (location.x.toInt() == this.minX || location.x.toInt() == this.maxX) intersectingAxis++
-        if (location.y.toInt() == this.minY || location.y.toInt() == this.maxY) intersectingAxis++
-        if (location.z.toInt() == this.minZ || location.z.toInt() == this.maxZ) intersectingAxis++
+        if (location.x.toInt() == minX || location.x.toInt() == maxX) intersectingAxis++
+        if (location.y.toInt() == minY || location.y.toInt() == maxY) intersectingAxis++
+        if (location.z.toInt() == minZ || location.z.toInt() == maxZ) intersectingAxis++
         return intersectingAxis
     }
 
-    fun edges(): List<Location> {
-        return listOf(
-            Location(world, minX.toDouble(), minY.toDouble(), minZ.toDouble()),
-            Location(world, maxX.toDouble(), minY.toDouble(), minZ.toDouble()),
-            Location(world, minX.toDouble(), maxY.toDouble(), minZ.toDouble()),
-            Location(world, maxX.toDouble(), maxY.toDouble(), minZ.toDouble()),
-            Location(world, minX.toDouble(), minY.toDouble(), maxZ.toDouble()),
-            Location(world, maxX.toDouble(), minY.toDouble(), maxZ.toDouble()),
-            Location(world, minX.toDouble(), maxY.toDouble(), maxZ.toDouble()),
-            Location(world, maxX.toDouble(), maxY.toDouble(), maxZ.toDouble())
+    val edges: List<Location> by lazy {
+        listOf(
+            Location(world, minXD, minYD, minZD),
+            Location(world, maxXD, minYD, minZD),
+            Location(world, minXD, maxYD, minZD),
+            Location(world, maxXD, maxYD, minZD),
+            Location(world, minXD, minYD, maxZD),
+            Location(world, maxXD, minYD, maxZD),
+            Location(world, minXD, maxYD, maxZD),
+            Location(world, maxXD, maxYD, maxZD)
         )
     }
 }

@@ -1,5 +1,6 @@
 package frame
 
+import kotlinx.coroutines.Job
 import org.bukkit.Location
 import org.bukkit.Particle
 import org.bukkit.entity.Entity
@@ -10,14 +11,33 @@ class Particle(
     val amount: Int = 10,
     val offset: Vector3d = Vector3d(1.0, 1.0, 1.0),
     val longRange: Boolean = false,
+) {
+    private fun spawn(location: Location) {
+        location.world.spawnParticle(particleType, location, amount, offset.x, offset.y, offset.z, longRange)
+    }
 
-    ) {
     fun spawnAt(vararg locations: Location) {
-
+        for (location in locations) {
+            spawn(location)
+        }
     }
 
     fun spawnFor(vararg entities: Entity) {
+        for (entity in entities) {
+            spawn(entity.location)
+        }
+    }
+    private suspend fun spawnPersistent(vararg locations: Location, time: Int? = null): Job {
+        val repeatData = RepeatData(
+            repeatCount = if (time != null) time / 500 else 1,
+            offset = 500,
+            infinite = time == null
+        )
+        return start(
+            repeatData = repeatData
+        ) {
 
+        }
     }
 }
 

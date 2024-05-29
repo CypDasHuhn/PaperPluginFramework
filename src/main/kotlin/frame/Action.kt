@@ -51,31 +51,6 @@ suspend fun <T> startWithProgress(
     }
 }
 
-suspend fun main() {
-    startWithProgress(
-        delay = 50,
-        progressData = ProgressData(
-            50,
-            MutableValue("init"),
-        ) { value ->
-            println(value)
-        },
-        action = { value ->
-            value.value = "starting"
-            delay(60)
-            value.value = "compiling"
-            delay(60)
-            value.value = "calculating"
-            delay(60)
-            value.value = "examining"
-            delay(60)
-            value.value = "finishing"
-
-        }
-    )
-}
-
-
 suspend fun start(
     delay: Long = 0,
     repeatData: RepeatData? = null,
